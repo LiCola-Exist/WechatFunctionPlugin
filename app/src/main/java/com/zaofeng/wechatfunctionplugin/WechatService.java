@@ -13,8 +13,10 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import com.zaofeng.wechatfunctionplugin.Model.AutoUploadModel;
+import com.zaofeng.wechatfunctionplugin.Utils.Constant;
 import com.zaofeng.wechatfunctionplugin.Utils.Logger;
 import com.zaofeng.wechatfunctionplugin.Utils.PerformUtils;
+import com.zaofeng.wechatfunctionplugin.Utils.SPUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -52,6 +54,8 @@ public class WechatService extends AccessibilityService {
 
     private boolean isDebug = true;
 
+    private boolean isReleaseCopy=false;//聊天内容快速发布功能 开关
+
     private Context mContext;
     private ClipboardManager clipboardManager;
 
@@ -79,7 +83,14 @@ public class WechatService extends AccessibilityService {
         // 得到剪贴板管理器
         clipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
         stateUi = Unknown;
+        setOperation();
+
         Logger.d();
+    }
+
+    private void setOperation() {
+        isReleaseCopy= (boolean) SPUtils.get(mContext,Constant.Release_Copy,false);
+
     }
 
 
@@ -124,11 +135,13 @@ public class WechatService extends AccessibilityService {
                 break;
             case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED:
                 if (stateUi == ChatUI && className.equals("android.widget.Toast$TN")) {
-                    String toastText = event.getText().get(0).toString();
-                    if (toastText.contains("已复制")) {
-                        //在聊天界面复制的一段文字
-                        autoUploadModel = new AutoUploadModel(getClipBoardDate());
-                        autoReleaseTimeLine(autoUploadModel);
+                    if (isReleaseCopy) {
+                        String toastText = event.getText().get(0).toString();
+                        if (toastText.contains("已复制")) {
+                            //在聊天界面复制的一段文字
+                            autoUploadModel = new AutoUploadModel(getClipBoardDate());
+                            autoReleaseTimeLine(autoUploadModel);
+                        }
                     }
                 }
                 break;

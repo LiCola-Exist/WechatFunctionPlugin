@@ -2,10 +2,10 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:left="12dp"
-        android:right="12dp">
+        >
         <shape android:shape="rectangle">
             <size android:height="1px" />
-            <solid android:color="@color/text_minor" />
+            <solid android:color="@color/divider" />
         </shape>
     </item>
 </layer-list>
