@@ -2,4 +2,6 @@
     <string name="app_name">WechatFunctionPlugin</string>
     <string name="title_activity_settings">Settings</string>
 
+    <string name="app_accessibility_service_description">朵朵微信功能插件服务</string>
+
 </resources>

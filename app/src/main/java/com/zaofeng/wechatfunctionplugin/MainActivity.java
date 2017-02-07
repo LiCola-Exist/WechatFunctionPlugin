@@ -1,8 +1,12 @@
 package com.zaofeng.wechatfunctionplugin;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -11,6 +15,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.zaofeng.wechatfunctionplugin.Utils.Constant;
+import com.zaofeng.wechatfunctionplugin.Utils.SPBuild;
 import com.zaofeng.wechatfunctionplugin.Utils.SPUtils;
 
 import butterknife.BindView;
@@ -31,8 +36,19 @@ public class MainActivity extends AppCompatActivity {
     TextView txtPostReplyContent;
     @BindView(R.id.img_release_reply)
     ImageView imgPostReply;
-    @BindView(R.id.layout_release_reply)
-    LinearLayout layoutPostReply;
+
+
+    @BindView(R.id.check_quick_accept)
+    CheckBox checkQuickAccept;
+    @BindView(R.id.layout_quick_accept)
+    LinearLayout layoutQuickAccept;
+
+    @BindView(R.id.check_quick_reply)
+    CheckBox checkQuickReply;
+    @BindView(R.id.txt_quick_reply_content)
+    TextView txtQuickReplyContent;
+    @BindView(R.id.img_quick_reply)
+    ImageView imgQuickReply;
 
     private Context mContext;
     private Context mAppContext;
@@ -48,8 +64,25 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        initFirstDate();
         initDate();
 
+    }
+
+    private void initFirstDate() {
+        boolean isFirst = (boolean) SPUtils.get(mAppContext, Constant.First, true);
+        if (isFirst) {
+            new SPBuild(mAppContext)
+                    .addData(Constant.First, false)
+                    .addData(Constant.Release_Copy, true)
+                    .addData(Constant.Release_Reply, true)
+                    .addData(Constant.Quick_Accept, true)
+                    .addData(Constant.Quick_Reply, true)
+                    .addData(Constant.Release_Reply_Content, "默认的回复文字")
+                    .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
+                    .build();
+
+        }
     }
 
     private void initDate() {
@@ -60,7 +93,11 @@ public class MainActivity extends AppCompatActivity {
         checkCopyRelease.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Copy, false));
         checkPostReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Reply, false));
 
-        txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, ""));
+        checkQuickAccept.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Accept, false));
+        checkQuickReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Reply, false));
+
+        txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
+        txtQuickReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
 
     }
 
@@ -78,10 +115,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnClick({R.id.img_release_reply})
+    @OnCheckedChanged({R.id.check_quick_accept, R.id.check_quick_reply})
+    public void onCheckedChangedQuick(CompoundButton button, boolean isChecked) {
+
+        int id = button.getId();
+        switch (id) {
+            case R.id.check_quick_accept:
+                SPUtils.putApply(mAppContext, Constant.Quick_Accept, isChecked);
+                break;
+            case R.id.check_quick_reply:
+                SPUtils.putApply(mAppContext, Constant.Quick_Reply, isChecked);
+                break;
+        }
+    }
+
+
+    @OnClick({R.id.img_release_reply, R.id.img_quick_reply})
     public void onEditClick(View view) {
         editDialogFragment.show(getSupportFragmentManager(), null);
         editInputDateListener.setView(view);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_setting:
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+                break;
+        }
+
+        return true;
     }
 
 
@@ -101,6 +172,10 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.img_release_reply:
                     txtPostReplyContent.setText(input);
                     SPUtils.putApply(mAppContext, Constant.Release_Reply_Content, input);
+                    break;
+                case R.id.img_quick_reply:
+                    txtQuickReplyContent.setText(input);
+                    SPUtils.putApply(mAppContext, Constant.Quick_Reply_Content, input);
                     break;
             }
         }

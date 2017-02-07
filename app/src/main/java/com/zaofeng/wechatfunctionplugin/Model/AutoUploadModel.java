@@ -7,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Created by 李可乐 on 2017/2/5 0005.
+ * 自动快速发布model 带状态
  */
 
 public class AutoUploadModel {

@@ -19,6 +19,13 @@ public class SPUtils {
     public static final int MODE = Context.MODE_PRIVATE;
 
 
+    public static SharedPreferences getSharedPreference(Context context){
+        SharedPreferences sp = context.getSharedPreferences(FILE_NAME,
+                MODE);
+        return sp;
+
+    }
+
     /**
      * 异步提交方法
      * @param context
