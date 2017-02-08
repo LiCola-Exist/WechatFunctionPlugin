@@ -1,8 +1,12 @@
 <resources>
-    <string name="app_name">WechatFunctionPlugin</string>
+    <string name="app_name">朵朵微信插件</string>
     <string name="title_activity_settings">Settings</string>
 
     <string name="app_accessibility_service_description">朵朵微信功能插件服务</string>
+    <string name="explain_release">功能说明：
+        \n1.聊天界面复制聊天内容后会自动跳转到朋友圈发布页
+        \n2.为自动回复生效请确保聊天界面为文字输入状态
+    </string>
     <string name="explain_quick">功能说明：
         \n1.以上功能依赖通知栏，请确保打开通知设置
         \n2.新增好友的自动回复功能依赖快捷接受新增好友请求

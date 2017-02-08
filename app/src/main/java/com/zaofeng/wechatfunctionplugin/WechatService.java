@@ -118,8 +118,8 @@ public class WechatService extends AccessibilityService {
                 isQuickNewFriendsReply = sharedPreferences.getBoolean(Constant.Quick_Accept, isQuickNewFriendsReply);
             } else if (key.equals(Constant.Quick_Offline)) {
                 isQuickOffLine = sharedPreferences.getBoolean(Constant.Quick_Offline, isQuickOffLine);
-            }else if (key.equals(Constant.Comment_Timeline)){
-                isCommentCopy=sharedPreferences.getBoolean(Constant.Comment_Timeline,isCommentCopy);
+            } else if (key.equals(Constant.Comment_Timeline)) {
+                isCommentCopy = sharedPreferences.getBoolean(Constant.Comment_Timeline, isCommentCopy);
             }
 
 
@@ -155,7 +155,7 @@ public class WechatService extends AccessibilityService {
         isQuickNewFriendsReply = (boolean) SPUtils.get(mContext, Constant.Quick_Reply, false);
         isQuickOffLine = (boolean) SPUtils.get(mContext, Constant.Quick_Offline, false);
 
-        isCommentCopy=(boolean)SPUtils.get(mContext,Constant.Comment_Timeline,false);
+        isCommentCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Timeline, false);
 
         SPUtils.getSharedPreference(mContext).registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
 
@@ -213,13 +213,13 @@ public class WechatService extends AccessibilityService {
                 }
                 break;
 
-            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED://窗口内容变化事件
+            case AccessibilityEvent.TYPE_VIEW_FOCUSED:
                 if (className.equals("android.widget.ListView")) {
-
                     if (hasViewById(IdListViewChat)) {
                         Logger.d("正在聊天页");
                         stateUi = ChatUI;
 
+                        //正在聊天页 且有输入框
                         if (hasViewById(IdEditChat)) {
                             if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Choose) {
                                 autoReplyFillOutReplyContent();
@@ -232,12 +232,11 @@ public class WechatService extends AccessibilityService {
                             if (fastOfflineReplyModel != null && fastOfflineReplyModel.getState() == FastOfflineReplyModel.OpenRequest) {
                                 autoOfflineFillOutReplyContent();
                             }
-
                         }
-
-
                     }
                 }
+                break;
+            case AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED://窗口内容变化事件
 
                 break;
             case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED://通知事件 toast也包括
@@ -576,12 +575,40 @@ public class WechatService extends AccessibilityService {
     private void autoReplyFillOutReplyContent() {
         setClipboarDate(autoReplyModel.getReplyContent());
         autoReplyModel.setState(AutoReplyModel.FillOut);
-        AccessibilityNodeInfo nodeInfo = findViewById(IdEditChat);
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-        PerformUtils.performAction(findViewClickById(IdButtonSend));
-        autoReplyModel.setState(AutoReplyModel.Finish);
-        autoReplyModel = null;
+
+        final AccessibilityNodeInfo nodeInfo = findViewById(IdEditChat);
+        //微信应该做了防抖动处理 所以需要延迟后执行
+        int position = 0;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(findViewClickById(IdButtonSend));
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                autoReplyModel.setState(AutoReplyModel.Finish);
+                autoReplyModel = null;
+                PerformUtils.performAction(findViewClickByText("返回"));
+            }
+        }, delayTime * position);
+
     }
 
 
