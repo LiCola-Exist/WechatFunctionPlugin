@@ -13,10 +13,13 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.zaofeng.wechatfunctionplugin.Utils.Constant;
 import com.zaofeng.wechatfunctionplugin.Utils.SPBuild;
 import com.zaofeng.wechatfunctionplugin.Utils.SPUtils;
+
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -90,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                     .addData(Constant.Quick_Accept, true)
                     .addData(Constant.Quick_Reply, true)
                     .addData(Constant.Quick_Offline, false)
-                    .addData(Constant.Comment_Timeline,true)
+                    .addData(Constant.Comment_Timeline, true)
                     .addData(Constant.Release_Reply_Content, "默认的回复文字")
                     .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
                     .addData(Constant.Quick_Offline_Content, "默认的离线回复文字")
@@ -111,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         checkQuickReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Reply, false));
         checkQuickOffline.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Offline, false));
 
-        checkCommentTimeLine.setChecked((boolean)SPUtils.get(mAppContext,Constant.Comment_Timeline,false));
+        checkCommentTimeLine.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Timeline, false));
 
         txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
         txtQuickReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
@@ -151,11 +154,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @OnCheckedChanged({R.id.check_comment_timeline})
-    public void onCheckChangedComment(CompoundButton button, boolean isChecked){
-        int id=button.getId();
-        switch (id){
+    public void onCheckChangedComment(CompoundButton button, boolean isChecked) {
+        int id = button.getId();
+        switch (id) {
             case R.id.check_comment_timeline:
-                SPUtils.putApply(mAppContext,Constant.Comment_Timeline,isChecked);
+                SPUtils.putApply(mAppContext, Constant.Comment_Timeline, isChecked);
                 break;
         }
     }
@@ -178,6 +181,8 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_setting:
+                String toastContent = String.format(Locale.CHINA, "请在更多设置->无障碍->开启%s服务", mAppContext.getString(R.string.app_name));
+                Toast.makeText(mContext, toastContent, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
                 startActivity(intent);
                 break;
