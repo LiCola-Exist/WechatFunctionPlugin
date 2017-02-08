@@ -50,6 +50,17 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.img_quick_reply)
     ImageView imgQuickReply;
 
+    @BindView(R.id.check_quick_offline)
+    CheckBox checkQuickOffline;
+    @BindView(R.id.txt_quick_offline_content)
+    TextView txtQuickOfflineContent;
+    @BindView(R.id.img_quick_offline)
+    ImageView imgQuickOffline;
+
+    @BindView(R.id.check_comment_timeline)
+    CheckBox checkCommentTimeLine;
+
+
     private Context mContext;
     private Context mAppContext;
 
@@ -78,8 +89,11 @@ public class MainActivity extends AppCompatActivity {
                     .addData(Constant.Release_Reply, true)
                     .addData(Constant.Quick_Accept, true)
                     .addData(Constant.Quick_Reply, true)
+                    .addData(Constant.Quick_Offline, false)
+                    .addData(Constant.Comment_Timeline,true)
                     .addData(Constant.Release_Reply_Content, "默认的回复文字")
                     .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
+                    .addData(Constant.Quick_Offline_Content, "默认的离线回复文字")
                     .build();
 
         }
@@ -95,9 +109,13 @@ public class MainActivity extends AppCompatActivity {
 
         checkQuickAccept.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Accept, false));
         checkQuickReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Reply, false));
+        checkQuickOffline.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Offline, false));
+
+        checkCommentTimeLine.setChecked((boolean)SPUtils.get(mAppContext,Constant.Comment_Timeline,false));
 
         txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
         txtQuickReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
+        txtQuickOfflineContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Offline_Content, Constant.Empty));
 
     }
 
@@ -115,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnCheckedChanged({R.id.check_quick_accept, R.id.check_quick_reply})
+    @OnCheckedChanged({R.id.check_quick_accept, R.id.check_quick_reply, R.id.check_quick_offline})
     public void onCheckedChangedQuick(CompoundButton button, boolean isChecked) {
 
         int id = button.getId();
@@ -126,11 +144,24 @@ public class MainActivity extends AppCompatActivity {
             case R.id.check_quick_reply:
                 SPUtils.putApply(mAppContext, Constant.Quick_Reply, isChecked);
                 break;
+            case R.id.check_quick_offline:
+                SPUtils.putApply(mAppContext, Constant.Quick_Offline, isChecked);
+                break;
+        }
+    }
+
+    @OnCheckedChanged({R.id.check_comment_timeline})
+    public void onCheckChangedComment(CompoundButton button, boolean isChecked){
+        int id=button.getId();
+        switch (id){
+            case R.id.check_comment_timeline:
+                SPUtils.putApply(mAppContext,Constant.Comment_Timeline,isChecked);
+                break;
         }
     }
 
 
-    @OnClick({R.id.img_release_reply, R.id.img_quick_reply})
+    @OnClick({R.id.img_release_reply, R.id.img_quick_reply, R.id.img_quick_offline})
     public void onEditClick(View view) {
         editDialogFragment.show(getSupportFragmentManager(), null);
         editInputDateListener.setView(view);
@@ -176,6 +207,10 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.img_quick_reply:
                     txtQuickReplyContent.setText(input);
                     SPUtils.putApply(mAppContext, Constant.Quick_Reply_Content, input);
+                    break;
+                case R.id.img_quick_offline:
+                    txtQuickOfflineContent.setText(input);
+                    SPUtils.putApply(mAppContext, Constant.Quick_Offline_Content, input);
                     break;
             }
         }

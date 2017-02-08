@@ -1,10 +1,12 @@
 package com.zaofeng.wechatfunctionplugin;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import butterknife.BindView;
 import butterknife.OnClick;
@@ -53,6 +55,12 @@ public class EditBottomFragment extends BaseBottomSheetFrag {
 
     @OnClick(R.id.btn_ok)
     public void onClick(View view) {
+        String input = editInput.getText().toString();
+        if (TextUtils.isEmpty(input)) {
+            Toast.makeText(mContext,"请输入内容",Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         if (onEditInputListener != null)
             onEditInputListener.onDate(editInput.getText().toString());
         editInput.setText(null);

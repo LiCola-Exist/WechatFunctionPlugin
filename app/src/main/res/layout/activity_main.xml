@@ -2,6 +2,7 @@
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/background">
 
     <LinearLayout
@@ -11,6 +12,7 @@
         android:orientation="vertical">
 
         <LinearLayout
+            tools:visibility="gone"
             android:id="@+id/layout_release"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -210,7 +212,8 @@
                         android:id="@+id/check_quick_reply"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center" />
+                        android:layout_gravity="center"
+                        />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -260,6 +263,7 @@
                     android:paddingTop="12dp">
 
                     <CheckBox
+                        android:id="@+id/check_quick_offline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center" />
@@ -275,22 +279,25 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="聊天内容快速发布"
+                            android:text="设置不在线状态自动回复"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
                         <TextView
+                            android:id="@+id/txt_quick_offline_content"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:ellipsize="end"
                             android:maxLines="1"
-                            android:text="文字内容文字内容文字内容文字内容文字内容"
+                            android:text="离线自动回复文字"
                             android:textColor="@color/secondary_text"
                             android:textSize="14sp" />
                     </LinearLayout>
 
+
                     <ImageView
+                        android:id="@+id/img_quick_offline"
                         android:layout_width="44dp"
                         android:layout_height="44dp"
                         android:layout_gravity="center"
@@ -309,7 +316,7 @@
                 android:paddingLeft="12dp"
                 android:paddingRight="12dp"
                 android:paddingTop="6dp"
-                android:text="功能说明：新增好友的自动回复功能依赖快捷接受新增好友请求"
+                android:text="@string/explain_quick"
                 android:textSize="12sp" />
 
 
@@ -348,6 +355,7 @@
                     android:paddingTop="12dp">
 
                     <CheckBox
+                        android:id="@+id/check_comment_timeline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center" />
@@ -363,28 +371,12 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="聊天内容快速发布"
+                            android:text="对朋友圈评论快捷复制回复"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
-                        <TextView
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:ellipsize="end"
-                            android:maxLines="1"
-                            android:text="文字内容文字内容文字内容文字内容文字内容"
-                            android:textColor="@color/secondary_text"
-                            android:textSize="14sp" />
+
                     </LinearLayout>
-
-                    <ImageView
-                        android:layout_width="44dp"
-                        android:layout_height="44dp"
-                        android:layout_gravity="center"
-                        android:scaleType="center"
-                        android:src="@drawable/ic_action_edit" />
-
 
                 </LinearLayout>
 
