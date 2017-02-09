@@ -2,6 +2,7 @@
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/background">
 
     <LinearLayout
@@ -11,6 +12,7 @@
         android:orientation="vertical">
 
         <LinearLayout
+            tools:visibility="gone"
             android:id="@+id/layout_release"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -96,7 +98,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="发布朋友圈后自动回复"
+                            android:text="发布朋友圈后返回并复制文字到粘贴板"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -379,6 +381,15 @@
 
             </LinearLayout>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="6dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="6dp"
+                android:text="@string/explain_comment"
+                android:textSize="12sp" />
 
         </LinearLayout>
 

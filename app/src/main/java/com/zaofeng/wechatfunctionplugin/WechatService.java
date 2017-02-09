@@ -654,23 +654,23 @@ public class WechatService extends AccessibilityService {
                 for (AccessibilityNodeInfo item : listMain) {
                     if (item.getText().equals("微信")) {
                         PerformUtils.performAction(forNodeInfoByClick(item));
-                        autoReplyModel.setState(AutoReplyModel.Choose);
+                        autoReplyModel.setState(AutoReplyModel.Jump);
+                        autoReplyModel = null;
                         return;
                     }
                 }
             }
         }, delayTime);
 
-        setClipboarDate(autoReplyModel.getReplyContent());
-
 
     }
 
     /**
-     * 第二步 设置状态为发送成功
+     * 第二步 设置状态为发送成功 并复制文字到粘贴板
      */
     private void autoReplyUploadSuccess() {
         autoReplyModel.setState(AutoReplyModel.Upload);
+        setClipboarDate(autoReplyModel.getReplyContent());
     }
 
     /**

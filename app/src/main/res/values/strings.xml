@@ -13,4 +13,8 @@
         \n3.不在线自动回复手动设置，并确保微信不在聊天页
     </string>
 
+    <string name="explain_comment">功能说明：
+        \n1.快捷复制回复目前只支持朋友圈页和朋友圈详情页
+    </string>
+
 </resources>

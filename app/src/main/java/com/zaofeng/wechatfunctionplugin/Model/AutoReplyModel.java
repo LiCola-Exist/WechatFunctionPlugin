@@ -15,11 +15,9 @@ public class AutoReplyModel {
     public static final int Start=1;
     public static final int Upload=2;
     public static final int Jump =3;
-    public static final int Choose =4;
-    public static final int FillOut=5;
     public static final int Finish=6;
 
-    @IntDef({BreakOff,Start,Upload, Jump,Choose,FillOut,Finish})
+    @IntDef({BreakOff,Start,Upload, Jump,Finish})
     @Retention(RetentionPolicy.SOURCE)
     public @interface State{}
 
