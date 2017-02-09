@@ -56,7 +56,8 @@ public class WechatService extends AccessibilityService {
     public static final String ClassLauncherUI = "com.tencent.mm.ui.LauncherUI";//主页 聊天页有时会发布和主页一样事件
     public static final String ClassChattingUI = "com.tencent.mm.ui.chatting.ChattingUI";//聊天页
     public static final String ClassSnsUploadUI = "com.tencent.mm.plugin.sns.ui.SnsUploadUI";//朋友圈发布页
-    public static final String ClassSnsTimeLine = "com.tencent.mm.plugin.sns.ui.SnsTimeLineUI";//朋友圈页
+    public static final String ClassSnsTimeLineUI = "com.tencent.mm.plugin.sns.ui.SnsTimeLineUI";//朋友圈页
+    public static final String ClassSnsCommentDetailUI = "com.tencent.mm.plugin.sns.ui.SnsCommentDetailUI";//朋友圈评论详情页
     public static final String ClassAlbumPreviewUI = "com.tencent.mm.plugin.gallery.ui.AlbumPreviewUI";//图片和视频选择列表
     public static final String ClassBizConversationUI = "com.tencent.mm.ui.conversation.BizConversationUI";//订阅号会话列表
     public static final String ClassFMessageConversationUI = "com.tencent.mm.plugin.subapp.ui.friend.FMessageConversationUI";//新朋友功能列表
@@ -67,14 +68,15 @@ public class WechatService extends AccessibilityService {
     private final static int ChatUI = 2;
     private final static int SnsTimeLineUI = 3;
     private final static int SnsUploadUI = 4;
-    private final static int AlbumPreviewUI = 5;
-    private final static int FMessageConversationUI = 6;
-    private final static int ContactInfoUI = 7;
+    private final static int SnsCommentDetailUI = 5;
+    private final static int AlbumPreviewUI = 6;
+    private final static int FMessageConversationUI = 7;
+    private final static int ContactInfoUI = 8;
 
 
     private static final long delayTime = 400;//为兼容微信的防抖动处理 的点击延迟时间
 
-    @IntDef({Unknown, LauncherUI, ChatUI, SnsTimeLineUI, SnsUploadUI, AlbumPreviewUI, FMessageConversationUI, ContactInfoUI})
+    @IntDef({Unknown, LauncherUI, ChatUI, SnsTimeLineUI, SnsUploadUI, SnsCommentDetailUI, AlbumPreviewUI, FMessageConversationUI, ContactInfoUI})
     @Retention(RetentionPolicy.SOURCE)
     public @interface StateUI {
     }
@@ -165,11 +167,12 @@ public class WechatService extends AccessibilityService {
 
     /**
      * @param event [210,1098][1035,1157]
+     *              9895
      */
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        Logger.d("event date=" + event.toString());
-
+        Logger.d("event date = " + event.toString());
+//        Logger.d("getSource = " + event.getSource().toString());
         int type = event.getEventType();
         String className = event.getClassName().toString();
         String text = event.getText().isEmpty() ? Constant.Empty : event.getText().get(0).toString();
@@ -197,7 +200,6 @@ public class WechatService extends AccessibilityService {
                         }
                     }
 
-
                 } else if (className.equals(ClassSnsUploadUI)) {
                     Logger.d("正在朋友圈发布页");
                     stateUi = SnsUploadUI;
@@ -210,7 +212,7 @@ public class WechatService extends AccessibilityService {
                     if (autoUploadModel != null && autoUploadModel.getState() == AutoUploadModel.Jump) {
                         autoUploadWaitChoose();
                     }
-                } else if (className.equals(ClassSnsTimeLine)) {
+                } else if (className.equals(ClassSnsTimeLineUI)) {
                     Logger.d("正在朋友圈页");
                     stateUi = SnsTimeLineUI;
 
@@ -221,7 +223,9 @@ public class WechatService extends AccessibilityService {
                     if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Upload) {
                         autoReplyUploadToChoose();
                     }
-
+                } else if (className.equals(ClassSnsCommentDetailUI)) {
+                    Logger.d("正在朋友圈评论详情页");
+                    stateUi = SnsCommentDetailUI;
 
                 } else if (className.equals(ClassFMessageConversationUI)) {
                     Logger.d("正在新朋友功能列表");
@@ -291,11 +295,20 @@ public class WechatService extends AccessibilityService {
                 }
 
                 if (isCommentCopy) {
-                    if (stateUi == SnsTimeLineUI && className.equals("android.widget.Toast$TN") && "已复制".equals(text)) {
-                        autoCopyFindViewAndCopy();
+                    if (className.equals("android.widget.Toast$TN") && "已复制".equals(text)) {
+                        if (stateUi == SnsTimeLineUI) {
+                            autoCopyFindViewAndCopy();
+                        }
+
+                        if (stateUi == SnsCommentDetailUI) {
+                            autoDetailCopyClick();
+                        }
                         return;
                     }
+
+
                 }
+
 
                 break;
             case AccessibilityEvent.TYPE_VIEW_CLICKED://点击事件
@@ -364,15 +377,10 @@ public class WechatService extends AccessibilityService {
             public void run() {
                 PerformUtils.performAction(findViewClickByText("发送"));
             }
-        }, delayTime * position++);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                lineCopyReplyModel.setState(TimeLineCopyReplyModel.Finish);
-                lineCopyReplyModel = null;
-            }
         }, delayTime * position);
+
+        lineCopyReplyModel.setState(TimeLineCopyReplyModel.Finish);
+        lineCopyReplyModel = null;
     }
 
     /**
@@ -402,7 +410,7 @@ public class WechatService extends AccessibilityService {
         }
 
         PerformUtils.performAction(forNodeInfoByClick(info));
-        PerformUtils.performAction(findViewById(IdButtonMenuComment));
+        PerformUtils.performAction(findViewClickById(IdButtonMenuComment));
     }
 
     /**
@@ -417,6 +425,16 @@ public class WechatService extends AccessibilityService {
         lineCopyReplyModel = new TimeLineCopyReplyModel(getClipBoardDate(), rect);
     }
 
+    /**
+     * 只有一步 朋友圈详情页的快捷复制评论 直接使用{@link #autoCopyFillOut()}自动填写
+     */
+    private void autoDetailCopyClick() {
+        lineCopyReplyModel = new TimeLineCopyReplyModel(getClipBoardDate(), null);
+
+        lineCopyReplyModel.setState(TimeLineCopyReplyModel.Find);//详情页只有一个评论按钮 不需要遍历匹配查找
+
+        autoCopyFillOut();
+    }
 
     /**
      * 只有一步 填写新增好友自动回复 并返回主页
