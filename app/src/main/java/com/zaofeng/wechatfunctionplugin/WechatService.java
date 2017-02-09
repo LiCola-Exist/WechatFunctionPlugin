@@ -332,9 +332,6 @@ public class WechatService extends AccessibilityService {
     private void onChatUI() {
         //正在聊天页 且有输入框
         if (hasViewById(IdEditChat)) {
-            if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Choose) {
-                autoReplyFillOutReplyContent();
-            }
 
             if (fastNewFriendReplyModel != null && fastNewFriendReplyModel.getState() == FastNewFriendReplyModel.Start) {
                 autoNewFriendReply();
@@ -634,49 +631,6 @@ public class WechatService extends AccessibilityService {
         }
     }
 
-    /**
-     * 第四步 填写快速回复内容
-     */
-    private void autoReplyFillOutReplyContent() {
-        setClipboarDate(autoReplyModel.getReplyContent());
-        autoReplyModel.setState(AutoReplyModel.FillOut);
-
-        final AccessibilityNodeInfo nodeInfo = findViewById(IdEditChat);
-        //微信应该做了防抖动处理 所以需要延迟后执行
-        int position = 0;
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
-            }
-        }, delayTime * position++);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-            }
-        }, delayTime * position++);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(findViewClickById(IdButtonSend));
-            }
-        }, delayTime * position++);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(findViewClickByText("返回"));
-            }
-        }, delayTime * position);
-
-        autoReplyModel.setState(AutoReplyModel.Finish);
-        autoReplyModel = null;
-
-    }
-
 
     /**
      * 第三步 检查发布是否成功 然后跳转到主页会话列表
@@ -706,6 +660,8 @@ public class WechatService extends AccessibilityService {
                 }
             }
         }, delayTime);
+
+        setClipboarDate(autoReplyModel.getReplyContent());
 
 
     }
