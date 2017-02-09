@@ -54,6 +54,7 @@ public class WechatService extends AccessibilityService {
 
 
     public static final String ClassLauncherUI = "com.tencent.mm.ui.LauncherUI";//主页 聊天页有时会发布和主页一样事件
+    public static final String ClassChattingUI = "com.tencent.mm.ui.chatting.ChattingUI";//聊天页
     public static final String ClassSnsUploadUI = "com.tencent.mm.plugin.sns.ui.SnsUploadUI";//朋友圈发布页
     public static final String ClassSnsTimeLine = "com.tencent.mm.plugin.sns.ui.SnsTimeLineUI";//朋友圈页
     public static final String ClassAlbumPreviewUI = "com.tencent.mm.plugin.gallery.ui.AlbumPreviewUI";//图片和视频选择列表
@@ -98,7 +99,7 @@ public class WechatService extends AccessibilityService {
     private Handler handler = new Handler();
 
     private AutoUploadModel autoUploadModel;
-    private AutoReplyModel autoReplyModel;
+    private AutoReplyModel autoReplyModel;//朋友圈发布 快速回复model
     private FastNewFriendAcceptModel fastNewFriendAcceptModel;
     private FastNewFriendReplyModel fastNewFriendReplyModel;
     private FastOfflineReplyModel fastOfflineReplyModel;
@@ -115,7 +116,7 @@ public class WechatService extends AccessibilityService {
             } else if (key.equals(Constant.Quick_Accept)) {
                 isQuickNewFriendsAccept = sharedPreferences.getBoolean(Constant.Quick_Accept, isQuickNewFriendsAccept);
             } else if (key.equals(Constant.Quick_Reply)) {
-                isQuickNewFriendsReply = sharedPreferences.getBoolean(Constant.Quick_Accept, isQuickNewFriendsReply);
+                isQuickNewFriendsReply = sharedPreferences.getBoolean(Constant.Quick_Reply, isQuickNewFriendsReply);
             } else if (key.equals(Constant.Quick_Offline)) {
                 isQuickOffLine = sharedPreferences.getBoolean(Constant.Quick_Offline, isQuickOffLine);
             } else if (key.equals(Constant.Comment_Timeline)) {
@@ -178,6 +179,25 @@ public class WechatService extends AccessibilityService {
                     Logger.d("正在主页或聊天页");
                     stateUi = ChatUI;
 
+                } else if (className.equals(ClassChattingUI)) {
+                    Logger.d("正在聊天页");
+
+                    //正在聊天页 且有输入框
+                    if (hasViewById(IdEditChat)) {
+                        if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Choose) {
+                            autoReplyFillOutReplyContent();
+                        }
+
+                        if (fastNewFriendReplyModel != null && fastNewFriendReplyModel.getState() == FastNewFriendReplyModel.Start) {
+                            autoNewFriendReply();
+                        }
+
+                        if (fastOfflineReplyModel != null && fastOfflineReplyModel.getState() == FastOfflineReplyModel.OpenRequest) {
+                            autoOfflineFillOutReplyContent();
+                        }
+                    }
+
+
                 } else if (className.equals(ClassSnsUploadUI)) {
                     Logger.d("正在朋友圈发布页");
                     stateUi = SnsUploadUI;
@@ -193,9 +213,16 @@ public class WechatService extends AccessibilityService {
                 } else if (className.equals(ClassSnsTimeLine)) {
                     Logger.d("正在朋友圈页");
                     stateUi = SnsTimeLineUI;
-                    if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Start) {
-                        autoReplyUploadSuccess();
+
+                    if (autoUploadModel != null && autoUploadModel.getState() == AutoUploadModel.Jump) {
+                        autoToUploadToChooseTimeLine();
                     }
+
+                    if (autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Upload) {
+                        autoReplyUploadToChoose();
+                    }
+
+
                 } else if (className.equals(ClassFMessageConversationUI)) {
                     Logger.d("正在新朋友功能列表");
                     stateUi = FMessageConversationUI;
@@ -273,6 +300,10 @@ public class WechatService extends AccessibilityService {
                 break;
             case AccessibilityEvent.TYPE_VIEW_CLICKED://点击事件
 
+
+                if ("发送".equals(text) && autoReplyModel != null && autoReplyModel.getState() == AutoReplyModel.Start) {
+                    autoReplyUploadSuccess();
+                }
 
                 break;
 
@@ -422,13 +453,12 @@ public class WechatService extends AccessibilityService {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                fastNewFriendReplyModel.setState(FastNewFriendReplyModel.Finish);
-                fastNewFriendReplyModel = null;
                 PerformUtils.performAction(findViewClickByText("返回"));
             }
         }, delayTime * position);
 
-
+        fastNewFriendReplyModel.setState(FastNewFriendReplyModel.Finish);
+        fastNewFriendReplyModel = null;
     }
 
     /**
@@ -539,12 +569,12 @@ public class WechatService extends AccessibilityService {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                fastOfflineReplyModel.setState(FastOfflineReplyModel.Finish);
-                fastOfflineReplyModel = null;
+
                 PerformUtils.performAction(findViewClickByText("返回"));
             }
         }, delayTime * position);
-
+        fastOfflineReplyModel.setState(FastOfflineReplyModel.Finish);
+        fastOfflineReplyModel = null;
 
     }
 
@@ -603,11 +633,12 @@ public class WechatService extends AccessibilityService {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                autoReplyModel.setState(AutoReplyModel.Finish);
-                autoReplyModel = null;
                 PerformUtils.performAction(findViewClickByText("返回"));
             }
         }, delayTime * position);
+
+        autoReplyModel.setState(AutoReplyModel.Finish);
+        autoReplyModel = null;
 
     }
 
@@ -615,36 +646,36 @@ public class WechatService extends AccessibilityService {
     /**
      * 第二步 检查发布是否成功 然后跳转到主页会话列表
      */
-    private void autoReplyUploadSuccess() {
-        autoReplyModel.setState(AutoReplyModel.Find);
-        List<AccessibilityNodeInfo> list = findViewListById(IdTextTimeLineContent);
+    private void autoReplyUploadToChoose() {
+//        List<AccessibilityNodeInfo> list = findViewListById(IdTextTimeLineContent);
+//
+//        for (AccessibilityNodeInfo item : list) {
+//            if (autoReplyModel.getTimeLineContent().equals(item.getText())) {
+//                autoReplyModel.setState(AutoReplyModel.Jump);
+//                break;
+//            }
+//        }
 
-        for (AccessibilityNodeInfo item : list) {
-            Logger.d("getText=" + item.getText());
-            if (autoReplyModel.getTimeLineContent().equals(item.getText())) {
-                autoReplyModel.setState(AutoReplyModel.Jump);
-                break;
-            }
-        }
+        PerformUtils.performAction(findViewClickByText("返回"));
 
-        if (autoReplyModel.getState() == AutoReplyModel.Jump) {
-            PerformUtils.performAction(findViewClickByText("返回"));
-
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    List<AccessibilityNodeInfo> listMain = findViewListById(IdButtonBottomMain);
-                    for (AccessibilityNodeInfo item : listMain) {
-                        if (item.getText().equals("微信")) {
-                            PerformUtils.performAction(forNodeInfoByClick(item));
-                            autoReplyModel.setState(AutoReplyModel.Choose);
-                            return;
-                        }
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                List<AccessibilityNodeInfo> listMain = findViewListById(IdButtonBottomMain);
+                for (AccessibilityNodeInfo item : listMain) {
+                    if (item.getText().equals("微信")) {
+                        PerformUtils.performAction(forNodeInfoByClick(item));
+                        autoReplyModel.setState(AutoReplyModel.Choose);
+                        return;
                     }
                 }
-            }, delayTime);
-        }
+            }
+        }, delayTime);
 
+    }
+
+    private void autoReplyUploadSuccess() {
+        autoReplyModel.setState(AutoReplyModel.Upload);
     }
 
     /**
@@ -664,7 +695,7 @@ public class WechatService extends AccessibilityService {
 
 
     /**
-     * 第三步 填写粘贴板的内容到输入框 并结束
+     * 第四步 填写粘贴板的内容到输入框 并结束
      */
     private void autoUploadFillOutTimeLine() {
         autoUploadModel.setState(AutoUploadModel.FillOut);
@@ -674,10 +705,32 @@ public class WechatService extends AccessibilityService {
     }
 
     /**
-     * 第二步 等待用户选择 图片
+     * 第三步 等待用户选择 图片
      */
     private void autoUploadWaitChoose() {
         autoUploadModel.setState(AutoUploadModel.Choose);
+    }
+
+    /**
+     * 第二步打开朋友圈发布功能 并选择从相册开始
+     */
+    private void autoToUploadToChooseTimeLine() {
+
+        int position = 1;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(findViewClickByText("更多功能按钮"));
+//                PerformUtils.performAction(findViewClickById(IdButtonTimeLine));
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(findViewClickByText("从相册选择"));
+            }
+        }, delayTime * position);
     }
 
     /**
@@ -689,30 +742,25 @@ public class WechatService extends AccessibilityService {
         autoUploadModel = new AutoUploadModel(getClipBoardDate());
 
         autoUploadModel.setState(AutoUploadModel.Jump);
-        PerformUtils.performAction(findViewClickByText("返回"));
-        PerformUtils.performAction(findViewClickByText("发现"));
+
         //微信应该做了防抖动处理 所以需要延迟后执行
-        int position = 0;
+        int position = 1;
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(findViewClickByText("返回"));
+                PerformUtils.performAction(findViewClickByText("发现"));
+            }
+        }, delayTime * position++);
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 PerformUtils.performAction(findViewClickByText("朋友圈"));
             }
-        }, delayTime * ++position);
+        }, delayTime * position);
 
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(findViewClickByText("更多功能按钮"));
-            }
-        }, delayTime * ++position);
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                PerformUtils.performAction(findViewClickByText("从相册选择"));
-            }
-        }, delayTime * ++position);
 
     }
 
