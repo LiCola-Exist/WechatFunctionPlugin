@@ -20,6 +20,7 @@ import com.zaofeng.wechatfunctionplugin.Utils.SPBuild;
 import com.zaofeng.wechatfunctionplugin.Utils.SPUtils;
 
 import java.util.Locale;
+import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -98,8 +99,9 @@ public class MainActivity extends AppCompatActivity {
                     .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
                     .addData(Constant.Quick_Offline_Content, "默认的离线回复文字")
                     .build();
-
         }
+
+        Objects.equals("","");
     }
 
     private void initDate() {

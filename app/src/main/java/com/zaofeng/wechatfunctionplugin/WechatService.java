@@ -172,7 +172,6 @@ public class WechatService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         Logger.d("event date = " + event.toString());
-//        Logger.d("getSource = " + event.getSource().toString());
         int type = event.getEventType();
         String className = event.getClassName().toString();
         String text = event.getText().isEmpty() ? Constant.Empty : event.getText().get(0).toString();
@@ -427,10 +426,46 @@ public class WechatService extends AccessibilityService {
     }
 
     /**
-     * 第二步 自动填写
+     * 第二步 自动填写 在朋友圈详情页需要处理 输入框自带的回复某人
+     * 使用获取焦点后返回 取消回复某人为评论
      */
     private void autoDetailCopyFillOut() {
-        autoCopyFillOut();
+        lineCopyReplyModel.setState(TimeLineCopyReplyModel.FillOut);
+
+        final AccessibilityNodeInfo nodeInfo = findViewById(IdEditTimeLineComment);
+        //微信应该做了防抖动处理 所以需要延迟后执行
+        int position = 0;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+//                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
+                PerformUtils.performAction(nodeInfo);
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                performGlobalAction(GLOBAL_ACTION_BACK);
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
+            }
+        }, delayTime * position++);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                PerformUtils.performAction(findViewClickByText("发送"));
+            }
+        }, delayTime * position);
+
+        lineCopyReplyModel.setState(TimeLineCopyReplyModel.Finish);
+        lineCopyReplyModel = null;
     }
 
     /**
@@ -447,14 +482,13 @@ public class WechatService extends AccessibilityService {
 
         lineCopyReplyModel.setState(TimeLineCopyReplyModel.Find);//详情页只有一个评论按钮 不需要遍历匹配查找
 
-
     }
 
     /**
      * 只有一步 填写新增好友自动回复 并返回主页
      */
     private void autoNewFriendReply() {
-        setClipboarDate(fastNewFriendReplyModel.getReplyContent());
+        setClipBoarDate(fastNewFriendReplyModel.getReplyContent());
         fastNewFriendReplyModel.setState(FastNewFriendReplyModel.FillOut);
 
 
@@ -571,7 +605,7 @@ public class WechatService extends AccessibilityService {
      */
     private void autoOfflineFillOutReplyContent() {
 
-        setClipboarDate(fastOfflineReplyModel.getReplyContent());
+        setClipBoarDate(fastOfflineReplyModel.getReplyContent());
         fastOfflineReplyModel.setState(FastOfflineReplyModel.FillOut);
 
         final AccessibilityNodeInfo nodeInfo = findViewById(IdEditChat);
@@ -670,7 +704,7 @@ public class WechatService extends AccessibilityService {
      */
     private void autoReplyUploadSuccess() {
         autoReplyModel.setState(AutoReplyModel.Upload);
-        setClipboarDate(autoReplyModel.getReplyContent());
+        setClipBoarDate(autoReplyModel.getReplyContent());
     }
 
     /**
@@ -871,7 +905,7 @@ public class WechatService extends AccessibilityService {
         return null;
     }
 
-    private void setClipboarDate(String date) {
+    private void setClipBoarDate(String date) {
         clipboardManager.setPrimaryClip(ClipData.newPlainText(null, date));
     }
 
