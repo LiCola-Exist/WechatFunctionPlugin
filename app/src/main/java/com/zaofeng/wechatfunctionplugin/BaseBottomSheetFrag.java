@@ -12,7 +12,7 @@ import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.zaofeng.wechatfunctionplugin.Utils.Logger;
+import com.zaofeng.wechatfunctionplugin.utils.Logger;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;

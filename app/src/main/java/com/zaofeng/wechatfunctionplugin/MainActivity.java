@@ -15,9 +15,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.zaofeng.wechatfunctionplugin.Utils.Constant;
-import com.zaofeng.wechatfunctionplugin.Utils.SPBuild;
-import com.zaofeng.wechatfunctionplugin.Utils.SPUtils;
+import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.utils.SPBuild;
+import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
                     .build();
         }
 
-        Objects.equals("","");
+        Objects.equals("", "");
     }
 
     private void initDate() {

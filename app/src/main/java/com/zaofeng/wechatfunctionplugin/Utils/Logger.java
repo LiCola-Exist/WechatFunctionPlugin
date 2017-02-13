@@ -1,4 +1,4 @@
-package com.zaofeng.wechatfunctionplugin.Utils;
+package com.zaofeng.wechatfunctionplugin.utils;
 
 import android.text.TextUtils;
 

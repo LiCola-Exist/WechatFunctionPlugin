@@ -1,4 +1,4 @@
-package com.zaofeng.wechatfunctionplugin.Model;
+package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
 
@@ -7,17 +7,16 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * Created by 李可乐 on 2017/2/5 0005.
- * 带状态
+ * 自动快捷回复新增好友 带状态
  */
 
-public class FastOfflineReplyModel {
+public class FastNewFriendReplyEvent {
     public static final int BreakOff = 0;
     public static final int Start = 1;
-    public static final int OpenRequest = 2;
-    public static final int FillOut = 3;
-    public static final int Finish = 4;
+    public static final int FillOut = 2;
+    public static final int Finish = 5;
 
-    @IntDef({BreakOff, Start,OpenRequest, FillOut, Finish})
+    @IntDef({BreakOff, Start, FillOut, Finish})
     @Retention(RetentionPolicy.SOURCE)
     public @interface State {
     }
@@ -25,7 +24,7 @@ public class FastOfflineReplyModel {
     private int state;
     private String ReplyContent;
 
-    public FastOfflineReplyModel(String replyContent) {
+    public FastNewFriendReplyEvent(String replyContent) {
         state = Start;
         ReplyContent = replyContent;
     }

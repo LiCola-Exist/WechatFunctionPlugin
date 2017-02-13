@@ -1,4 +1,4 @@
-package com.zaofeng.wechatfunctionplugin.Model;
+package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
 
@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * 自动快速发布后回复model 带状态
  */
 
-public class AutoReplyModel {
+public class AutoReplyEvent {
     public static final int BreakOff=0;
     public static final int Start=1;
     public static final int Upload=2;
@@ -25,7 +25,7 @@ public class AutoReplyModel {
     private String TimeLineContent;
     private String ReplyContent;
 
-    public AutoReplyModel(String timeLineContent, String replyContent) {
+    public AutoReplyEvent(String timeLineContent, String replyContent) {
         state=Start;
         TimeLineContent = timeLineContent;
         ReplyContent = replyContent;
@@ -57,7 +57,7 @@ public class AutoReplyModel {
 
     @Override
     public String toString() {
-        return "AutoReplyModel{" +
+        return "AutoReplyEvent{" +
                 "state=" + state +
                 ", TimeLineContent='" + TimeLineContent + '\'' +
                 ", ReplyContent='" + ReplyContent + '\'' +

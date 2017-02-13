@@ -1,4 +1,4 @@
-package com.zaofeng.wechatfunctionplugin.Model;
+package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
 
@@ -10,7 +10,7 @@ import java.lang.annotation.RetentionPolicy;
  * 自动快速发布model 带状态
  */
 
-public class AutoUploadModel {
+public class AutoUploadEvent {
     public static final int BreakOff=0;
     public static final int Start=1;
     public static final int Jump=2;
@@ -22,10 +22,11 @@ public class AutoUploadModel {
     @Retention(RetentionPolicy.SOURCE)
     public @interface State{}
 
+    @State
     private int state;
     private String clipText;
 
-    public AutoUploadModel(String clipText) {
+    public AutoUploadEvent(String clipText) {
         this.state = Start;
         this.clipText = clipText;
     }
