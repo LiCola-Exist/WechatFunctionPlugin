@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
@@ -34,6 +35,10 @@ import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewById;
@@ -150,7 +155,6 @@ public class WechatService extends AccessibilityService {
                 isCommentCopy = sharedPreferences.getBoolean(Constant.Comment_Timeline, isCommentCopy);
             }
 
-
         }
     };
 
@@ -181,24 +185,104 @@ public class WechatService extends AccessibilityService {
     }
 
     private void checkAndSetDate() {
+        Logger.d();
+
+
+//        AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
+
+//        String authorName = infoTargetName.getText().toString();
+
+
+//        List<AccessibilityNodeInfo> infoList = findViewListById(mService, IdLayoutTimeLineDetailListItem);
+
+        LinkedHashSet<AccessibilityNodeInfo> set = new LinkedHashSet<>();
+        getListViewItemInfo(set);
+
+        Logger.d("set.size()=" + set.size());
+//        Iterator<AccessibilityNodeInfo> infoIterator = set.iterator();
+//        AccessibilityNodeInfo infoFor;
+//        while (infoIterator.hasNext()) {
+//            infoFor = infoIterator.next();
+//            if (infoFor != null && infoFor.getChild(3) != null) {
+//                Logger.d("text=" + infoFor.getChild(3).getText());
+//            } else {
+//                Logger.d("text=null");
+//            }
+//        }
+
+//        ArrayList<CommentRelationModel> targetList = new ArrayList<>();
+//        ArrayList<CommentRelationModel> coverList = new ArrayList<>();
+//
+//        String itemTitle;
+//        String itemContent;
+//        for (AccessibilityNodeInfo item : infoList) {
+//            itemTitle = findViewById(item, IdTextTimeLineCommentTitle).getText().toString();
+//            itemContent = findViewById(item, IdTextTimeLineCommentContent).getText().toString();
+//
+//            if (itemTitle.contains("回复")) {
+//                int result = itemTitle.indexOf(authorName);
+//                if (result != -1 && result != 0) {
+//                    //回复评论 回复中有朵朵 并且不为首位 即同学回复朵朵的title 存入目标集合
+//                    targetList.add(new CommentRelationModel(itemContent));
+//                }
+//            } else {
+//                if (itemTitle.equals(authorName)) {
+//                    //朵朵的发布的评论
+//                    coverList.add(new CommentRelationModel(itemContent));
+//                } else {
+//                    //评论 且不是朵朵发布的 即同学的评论
+//                    targetList.add(new CommentRelationModel(itemContent));
+//                }
+//            }
+//        }
+
+
+    }
+
+    private LinkedHashSet<AccessibilityNodeInfo> getListViewItemInfo(LinkedHashSet<AccessibilityNodeInfo> set) {
         AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
-        AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
 
-        if (info == null || infoTargetName == null) return;
+        AccessibilityNodeInfo itemInfo;
 
-        String targetName = infoTargetName.getText().toString();
+        try {
+            Class cls = AccessibilityNodeInfo.class;
+            Logger.d("getChildCount=" + info.getChildCount());
+            for (int i = 0; i < info.getChildCount(); i++) {
+//                itemInfo = info.getChild(i);
+                itemInfo = info.getChild(i);
 
-        List<AccessibilityNodeInfo> infoList = findViewListById(mService, IdLayoutTimeLineDetailListItem);
+                boolean result = set.add(itemInfo);
+                AccessibilityNodeInfo logItem = itemInfo;
+                if (logItem.getChild(3) != null) {
+                    Logger.d("logItem i= " + i + " text = " + logItem.getChild(3).getText() + " result= " + result);
+                } else {
+                    Logger.d("logItem i= " + i + " text = null" + " result= " + result);
+                }
 
-        for (AccessibilityNodeInfo item : infoList) {
-
+                Method method = cls.getDeclaredMethod("getSourceNodeId");
+                method.setAccessible(true);
+                long id = (long) method.invoke(itemInfo);
+                Logger.d("id=" + id);
+            }
+        }catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+            Logger.d(e.toString());
         }
+
+
 
 
         if (!PerformUtils.checkScrollViewBottom(info)) {
             PerformUtils.performAction(info, AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+//            try {
+//                Thread.sleep(delayTime);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            return getListViewItemInfo(set);
         } else {
             Logger.d("已经到底了");
+            return set;
         }
 
     }
@@ -208,6 +292,13 @@ public class WechatService extends AccessibilityService {
         SPUtils.getSharedPreference(mContext).unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         Logger.d("服务中断，如授权关闭或者将服务杀死");
         mWindowManager.removeViewImmediate(mWindowView.getViewRoot());
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Logger.d("服务被解绑");
+        mWindowManager.removeViewImmediate(mWindowView.getViewRoot());
+        return super.onUnbind(intent);
     }
 
     @Override
@@ -242,7 +333,7 @@ public class WechatService extends AccessibilityService {
         info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;//响应的事件类型
         info.packageNames = new String[]{"com.tencent.mm"};//响应的包名
         info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;//反馈类型
-        info.notificationTimeout = 100;//响应时间
+        info.notificationTimeout = 80;//响应时间
         return info;
     }
 
@@ -668,7 +759,7 @@ public class WechatService extends AccessibilityService {
          * 代码 默认点击第一个即 最新的 好友请求 位置为1
          */
         AccessibilityNodeInfo infoFirstItem = infoListView.getChild(1);
-        PerformUtils.performAction(findViewClickByText(infoFirstItem,"接受"));
+        PerformUtils.performAction(findViewClickByText(infoFirstItem, "接受"));
 
         handler.postDelayed(new Runnable() {
             @Override

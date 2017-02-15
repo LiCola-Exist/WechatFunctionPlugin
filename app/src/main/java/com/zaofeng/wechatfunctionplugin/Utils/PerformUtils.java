@@ -42,6 +42,8 @@ public class PerformUtils {
      *
      * @param info
      * @return true 滚动到底部 false 还没有到底
+     *
+     *
      */
     public static boolean checkScrollViewBottom(AccessibilityNodeInfo info) {
         return !containAction(info, AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);

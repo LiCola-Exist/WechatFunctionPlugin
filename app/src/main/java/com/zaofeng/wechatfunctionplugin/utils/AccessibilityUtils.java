@@ -155,6 +155,7 @@ public class AccessibilityUtils {
      * @return true 符合判定条件 即非空并且只有一个元素 能够准确定位 false 其他情况都是
      */
     private static boolean checkNodeListRule(List<AccessibilityNodeInfo> infos) {
-        return (!infos.isEmpty()) && (infos.size() == 1);
+//        return (!infos.isEmpty()) && (infos.size() == 1);
+        return !infos.isEmpty();
     }
 }
