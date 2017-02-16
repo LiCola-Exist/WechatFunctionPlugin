@@ -1,6 +1,7 @@
 package com.zaofeng.wechatfunctionplugin;
 
 import android.content.Context;
+import android.support.v4.app.FragmentManager;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -17,11 +18,12 @@ import butterknife.OnClick;
 
 public class EditBottomFragment extends BaseBottomSheetFrag {
 
-
     @BindView(R.id.btn_ok)
     Button btnOk;
     @BindView(R.id.edit_input)
     EditText editInput;
+
+    private String content;
 
     private onEditInputListener onEditInputListener;
 
@@ -39,11 +41,19 @@ public class EditBottomFragment extends BaseBottomSheetFrag {
 
     }
 
+    public void showWithKey(FragmentManager manager, String tag, String content){
+        this.show(manager, tag);
+        this.content = content;
+    }
 
     @Override
     public void resetView() {
 
         editInput.requestFocus();
+        if (!TextUtils.isEmpty(content)){
+            editInput.setText(content);
+            editInput.setSelection(content.length());
+        }
         editInput.post(new Runnable() {
             @Override
             public void run() {

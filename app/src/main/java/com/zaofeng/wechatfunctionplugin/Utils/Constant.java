@@ -19,6 +19,7 @@ public class Constant {
     public static final String Quick_Reply ="Quick_Reply";
     public static final String Quick_Offline ="Quick_Offline";
     public static final String Comment_Timeline ="Comment_Timeline";
+    public static final String Comment_Auto ="Comment_Auto";
 
 
     /**
@@ -28,4 +29,5 @@ public class Constant {
     public static final String Release_Reply_Content="Release_Reply_Content";
     public static final String Quick_Reply_Content="Quick_Reply_Content";
     public static final String Quick_Offline_Content="Quick_Offline_Content";
+    public static final String Comment_Auto_Content="Comment_Auto_Content";
 }

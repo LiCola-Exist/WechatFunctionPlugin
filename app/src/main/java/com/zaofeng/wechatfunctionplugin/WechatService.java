@@ -11,16 +11,19 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
+import android.widget.Toast;
 
 import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
@@ -33,6 +36,7 @@ import com.zaofeng.wechatfunctionplugin.model.event.TimeLineCopyReplyEvent;
 import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
+import com.zaofeng.wechatfunctionplugin.utils.RelationUtils;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
 import java.lang.annotation.Retention;
@@ -116,6 +120,7 @@ public class WechatService extends AccessibilityService {
     private boolean isQuickOffLine = false;
 
     private boolean isCommentCopy = false;//朋友圈评论复制后快速回复
+    private boolean isCommentAuto = false;//朋友圈评论自动回复
 
     private Context mContext;
     private AccessibilityService mService;
@@ -123,8 +128,12 @@ public class WechatService extends AccessibilityService {
     private WindowManager mWindowManager;
     private WindowManager.LayoutParams mWLayoutParams;
 
-
     private WindowView mWindowView;
+
+    private int mStartX;
+    private int mStartY;
+    private int mEndX;
+    private int mEndY;
 
     @StateUI
     private int stateUi;
@@ -154,6 +163,8 @@ public class WechatService extends AccessibilityService {
                 isQuickOffLine = sharedPreferences.getBoolean(Constant.Quick_Offline, isQuickOffLine);
             } else if (key.equals(Constant.Comment_Timeline)) {
                 isCommentCopy = sharedPreferences.getBoolean(Constant.Comment_Timeline, isCommentCopy);
+            } else if (key.equals(Constant.Comment_Auto)) {
+                isCommentAuto = sharedPreferences.getBoolean(Constant.Comment_Auto, isCommentAuto);
             }
 
         }
@@ -180,16 +191,69 @@ public class WechatService extends AccessibilityService {
         mWindowView.setViewRootClick(new WindowView.OnWindowViewClickListener() {
             @Override
             public void onWindowClick(View view) {
-                checkAndSetDate();
+                if (isCommentAuto) {
+                    if (stateUi == SnsCommentDetailUI) {
+                        checkAndSetDate();
+                    } else {
+                        Toast.makeText(mContext, "该功能只在朋友圈详情页生效", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Toast.makeText(mContext, "请开启自动回复评论", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
+        mWindowView.getViewRoot().setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        mStartX = (int) event.getRawX();
+                        mStartY = (int) event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_MOVE:
+                        mEndX = (int) event.getRawX();
+                        mEndY = (int) event.getRawY();
+                        if (needIntercept()) {
+                            mWLayoutParams.x = (int) (event.getRawX() - mWindowView.getViewRoot().getMeasuredWidth() / 2);
+                            mWLayoutParams.y = (int) (event.getRawY() - mWindowView.getViewRoot().getMeasuredHeight() / 2);
+                            mWindowManager.updateViewLayout(mWindowView.getViewRoot(), mWLayoutParams);
+                            return true;
+                        }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        if (needIntercept()) {
+                            return true;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+
+                return false;
+            }
+
+            private boolean needIntercept() {
+                return Math.abs(mStartX - mEndX) > 30 || Math.abs(mStartY - mEndY) > 30;
+            }
+        });
+
     }
 
     private void checkAndSetDate() {
 
         AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
-
-        String authorName = new String(infoTargetName.getText().toString());
+        if (infoTargetName == null) {
+            Toast.makeText(mContext, "请滚动到顶部显示该条朋友圈作者", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String authorName = infoTargetName.getText().toString();
+        String setAuthorName = (String) SPUtils.get(mContext, Constant.Comment_Auto_Content, Constant.Empty);
+        if (!authorName.equals(setAuthorName)) {
+            Toast.makeText(mContext, "该条朋友圈作者与插件中输入的名字不符", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         LinkedHashSet<CommentDateModel> set = new LinkedHashSet<>();
         getListViewItemInfo(set);
@@ -226,7 +290,37 @@ public class WechatService extends AccessibilityService {
             }
         }
 
+        ArrayList<String> result = RelationUtils.getResult(targetList, coverList);
 
+        if (result.isEmpty()) {
+            Toast.makeText(mContext, "没有需要处理的内容", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
+
+        long time = 200;
+
+        try {
+            PerformUtils.performAction(nodeInfo);
+            Thread.sleep(time);
+            performGlobalAction(GLOBAL_ACTION_BACK);
+            Thread.sleep(time);
+
+            for (String item :
+                    result) {
+                Bundle arguments = new Bundle();
+                arguments.putCharSequence(AccessibilityNodeInfo
+                        .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
+                PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+                Thread.sleep(time);
+                PerformUtils.performAction(findViewClickByText(mService, "发送"));
+                Thread.sleep(time);
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     private LinkedHashSet<CommentDateModel> getListViewItemInfo(LinkedHashSet<CommentDateModel> set) {
@@ -243,8 +337,9 @@ public class WechatService extends AccessibilityService {
             itemInfo = infoList.get(i);
             index = itemInfo.getCollectionItemInfo().getRowIndex();
             if (itemInfo.getChild(1) != null && itemInfo.getChild(3) != null) {
-                title = itemInfo.getChild(1).getText().toString();
-                content = itemInfo.getChild(3).getText().toString();
+                //索引1=名称 索引3=内容 trim是为去除控件产生的空格
+                title = itemInfo.getChild(1).getText().toString().trim();
+                content = itemInfo.getChild(3).getText().toString().trim();
                 itemModel = new CommentDateModel(index, title, content);
                 set.add(itemModel);
             }
@@ -295,7 +390,9 @@ public class WechatService extends AccessibilityService {
         mWLayoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
         mWLayoutParams.format = PixelFormat.TRANSLUCENT;
         mWLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        mWLayoutParams.gravity = Gravity.RIGHT | Gravity.TOP;
+        mWLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
+        mWLayoutParams.x = 100;
+        mWLayoutParams.y = 300;
         mWLayoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
         mWLayoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
 
@@ -325,6 +422,7 @@ public class WechatService extends AccessibilityService {
         isQuickOffLine = (boolean) SPUtils.get(mContext, Constant.Quick_Offline, false);
 
         isCommentCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Timeline, false);
+        isCommentAuto = (boolean) SPUtils.get(mContext, Constant.Comment_Auto, false);
 
         SPUtils.getSharedPreference(mContext).registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
 
@@ -379,7 +477,6 @@ public class WechatService extends AccessibilityService {
                 } else if (className.equals(ClassSnsCommentDetailUI)) {
                     Logger.d("正在朋友圈评论详情页");
                     stateUi = SnsCommentDetailUI;
-                    mWindowView.setTitle("开始检测");
 
                 } else if (className.equals(ClassFMessageConversationUI)) {
                     Logger.d("正在新朋友功能列表");

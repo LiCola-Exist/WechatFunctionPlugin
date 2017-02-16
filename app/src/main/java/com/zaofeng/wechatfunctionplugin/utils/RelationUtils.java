@@ -17,16 +17,13 @@ public class RelationUtils {
         for (CommentRelationModel targetItem : targetList) {
 
             for (CommentRelationModel coverItem : coverList) {
-                if (targetItem.getContent().equals(coverItem.getContent())) {
-                    if (coverItem.isMap()){
-                        isFind=false;
-                    }else {
-                        isFind=true;
-                        coverItem.setMap(true);
-                    }
-                }else {
-                    isFind=false;
-                }
+               if (targetItem.getContent().equals(coverItem.getContent())&&!coverItem.isMap()){
+                   coverItem.setMap(true);
+                   isFind=true;
+                   break;
+               }else {
+                   isFind=false;
+               }
             }
             if (!isFind){
                 resultList.add(targetItem.getContent());

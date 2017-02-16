@@ -3,7 +3,11 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/bg_window"
+    android:padding="4dp"
+    >
+
 
     <ImageView
         android:id="@+id/img_window_image"
@@ -15,5 +19,5 @@
         android:id="@+id/txt_window_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="文字提示" />
+        android:text="点击开始" />
 </LinearLayout>

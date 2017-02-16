@@ -1,5 +1,6 @@
 package com.zaofeng.wechatfunctionplugin.utils;
 
+import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
 
 import java.util.List;
@@ -25,6 +26,10 @@ public class PerformUtils {
      */
     public static boolean performAction(AccessibilityNodeInfo info, int action) {
         return info != null && info.performAction(action);
+    }
+
+    public static boolean performAction(AccessibilityNodeInfo info, int action,Bundle arguments) {
+        return info != null && info.performAction(action,arguments);
     }
 
     /**

@@ -20,7 +20,6 @@ import com.zaofeng.wechatfunctionplugin.utils.SPBuild;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
 import java.util.Locale;
-import java.util.Objects;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -64,6 +63,13 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.check_comment_timeline)
     CheckBox checkCommentTimeLine;
 
+    @BindView(R.id.check_comment_auto)
+    CheckBox checkCommentAuto;
+    @BindView(R.id.txt_comment_auto_content)
+    TextView txtCommentAutoContent;
+    @BindView(R.id.img_comment_auto)
+    ImageView imgCommentAuto;
+
 
     private Context mContext;
     private Context mAppContext;
@@ -95,13 +101,14 @@ public class MainActivity extends AppCompatActivity {
                     .addData(Constant.Quick_Reply, true)
                     .addData(Constant.Quick_Offline, false)
                     .addData(Constant.Comment_Timeline, true)
+                    .addData(Constant.Comment_Auto, true)
                     .addData(Constant.Release_Reply_Content, "默认的回复文字")
                     .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
                     .addData(Constant.Quick_Offline_Content, "默认的离线回复文字")
+                    .addData(Constant.Comment_Auto_Content, "朵朵的名字？")
                     .build();
         }
 
-        Objects.equals("", "");
     }
 
     private void initDate() {
@@ -117,10 +124,16 @@ public class MainActivity extends AppCompatActivity {
         checkQuickOffline.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Offline, false));
 
         checkCommentTimeLine.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Timeline, false));
+        checkCommentAuto.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Auto, false));
+
 
         txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
+
         txtQuickReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
         txtQuickOfflineContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Offline_Content, Constant.Empty));
+
+        txtCommentAutoContent.setText((String) SPUtils.get(mAppContext, Constant.Comment_Auto_Content, Constant.Empty));
+
 
     }
 
@@ -155,42 +168,40 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnCheckedChanged({R.id.check_comment_timeline})
+    @OnCheckedChanged({R.id.check_comment_timeline,R.id.check_comment_auto})
     public void onCheckChangedComment(CompoundButton button, boolean isChecked) {
         int id = button.getId();
         switch (id) {
             case R.id.check_comment_timeline:
                 SPUtils.putApply(mAppContext, Constant.Comment_Timeline, isChecked);
                 break;
+            case R.id.check_comment_auto:
+                SPUtils.putApply(mAppContext, Constant.Comment_Auto, isChecked);
+                break;
         }
     }
 
 
-    @OnClick({R.id.img_release_reply, R.id.img_quick_reply, R.id.img_quick_offline})
+    @OnClick({R.id.img_release_reply, R.id.img_quick_reply, R.id.img_quick_offline,R.id.img_comment_auto})
     public void onEditClick(View view) {
-        editDialogFragment.show(getSupportFragmentManager(), null);
-        editInputDateListener.setView(view);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        getMenuInflater().inflate(R.menu.menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_setting:
-                String toastContent = String.format(Locale.CHINA, "请在更多设置->无障碍->开启%s服务", mAppContext.getString(R.string.app_name));
-                Toast.makeText(mContext, toastContent, Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
-                startActivity(intent);
+        String content=null;
+        switch (view.getId()){
+            case R.id.img_release_reply:
+                content=txtPostReplyContent.getText().toString();
+                break;
+            case R.id.img_quick_reply:
+                content=txtQuickReplyContent.getText().toString();
+                break;
+            case R.id.img_quick_offline:
+                content=txtQuickOfflineContent.getText().toString();
+                break;
+            case R.id.img_comment_auto:
+                content=txtCommentAutoContent.getText().toString();
                 break;
         }
 
-        return true;
+        editDialogFragment.showWithKey(getSupportFragmentManager(),null,content);
+        editInputDateListener.setView(view);
     }
 
 
@@ -219,7 +230,32 @@ public class MainActivity extends AppCompatActivity {
                     txtQuickOfflineContent.setText(input);
                     SPUtils.putApply(mAppContext, Constant.Quick_Offline_Content, input);
                     break;
+                case R.id.img_comment_auto:
+                    txtCommentAutoContent.setText(input);
+                    SPUtils.putApply(mAppContext, Constant.Comment_Auto_Content, input);
+                    break;
             }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_setting:
+                String toastContent = String.format(Locale.CHINA, "请在更多设置->无障碍->开启%s服务", mAppContext.getString(R.string.app_name));
+                Toast.makeText(mContext, toastContent, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+                startActivity(intent);
+                break;
+        }
+
+        return true;
     }
 }
