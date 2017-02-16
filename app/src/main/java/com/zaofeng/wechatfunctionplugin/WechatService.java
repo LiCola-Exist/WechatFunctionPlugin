@@ -9,18 +9,13 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
-import android.view.Gravity;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
@@ -29,10 +24,11 @@ import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
 import com.zaofeng.wechatfunctionplugin.model.event.AutoReplyEvent;
 import com.zaofeng.wechatfunctionplugin.model.event.AutoUploadEvent;
+import com.zaofeng.wechatfunctionplugin.model.event.CommentAutoEvent;
+import com.zaofeng.wechatfunctionplugin.model.event.CommentCopyEvent;
 import com.zaofeng.wechatfunctionplugin.model.event.FastNewFriendAcceptEvent;
 import com.zaofeng.wechatfunctionplugin.model.event.FastNewFriendReplyEvent;
 import com.zaofeng.wechatfunctionplugin.model.event.FastOfflineReplyEvent;
-import com.zaofeng.wechatfunctionplugin.model.event.TimeLineCopyReplyEvent;
 import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
@@ -42,7 +38,6 @@ import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 
@@ -113,7 +108,7 @@ public class WechatService extends AccessibilityService {
     private boolean isDebug = true;
 
     private boolean isReleaseCopy = false;//聊天内容快速发布功能 开关
-    private boolean isReleaseReply = false;//朋友圈发布快速回复 开关
+    private boolean isReleaseBack = false;//朋友圈发布快速回复 开关
 
     private boolean isQuickNewFriendsAccept = false;
     private boolean isQuickNewFriendsReply = false;
@@ -125,15 +120,9 @@ public class WechatService extends AccessibilityService {
     private Context mContext;
     private AccessibilityService mService;
     private ClipboardManager mClipboardManager;
-    private WindowManager mWindowManager;
-    private WindowManager.LayoutParams mWLayoutParams;
 
     private WindowView mWindowView;
 
-    private int mStartX;
-    private int mStartY;
-    private int mEndX;
-    private int mEndY;
 
     @StateUI
     private int stateUi;
@@ -145,7 +134,9 @@ public class WechatService extends AccessibilityService {
     private FastNewFriendAcceptEvent fastNewFriendAcceptEvent;
     private FastNewFriendReplyEvent fastNewFriendReplyEvent;
     private FastOfflineReplyEvent fastOfflineReplyEvent;
-    private TimeLineCopyReplyEvent lineCopyReplyModel;
+    private CommentCopyEvent commentCopyEvent;
+    private CommentAutoEvent commentAutoEvent;
+
 
     private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
         @Override
@@ -153,18 +144,22 @@ public class WechatService extends AccessibilityService {
             Logger.d("key=" + key);
             if (key.equals(Constant.Release_Copy)) {
                 isReleaseCopy = sharedPreferences.getBoolean(Constant.Release_Copy, isReleaseCopy);
-            } else if (key.equals(Constant.Release_Reply)) {
-                isReleaseReply = sharedPreferences.getBoolean(Constant.Release_Reply, isReleaseReply);
+            } else if (key.equals(Constant.Release_Back)) {
+                isReleaseBack = sharedPreferences.getBoolean(Constant.Release_Back, isReleaseBack);
             } else if (key.equals(Constant.Quick_Accept)) {
                 isQuickNewFriendsAccept = sharedPreferences.getBoolean(Constant.Quick_Accept, isQuickNewFriendsAccept);
             } else if (key.equals(Constant.Quick_Reply)) {
                 isQuickNewFriendsReply = sharedPreferences.getBoolean(Constant.Quick_Reply, isQuickNewFriendsReply);
             } else if (key.equals(Constant.Quick_Offline)) {
                 isQuickOffLine = sharedPreferences.getBoolean(Constant.Quick_Offline, isQuickOffLine);
-            } else if (key.equals(Constant.Comment_Timeline)) {
-                isCommentCopy = sharedPreferences.getBoolean(Constant.Comment_Timeline, isCommentCopy);
+            } else if (key.equals(Constant.Comment_Copy)) {
+                isCommentCopy = sharedPreferences.getBoolean(Constant.Comment_Copy, isCommentCopy);
             } else if (key.equals(Constant.Comment_Auto)) {
                 isCommentAuto = sharedPreferences.getBoolean(Constant.Comment_Auto, isCommentAuto);
+            }
+
+            if (mWindowView != null) {
+                mWindowView.setViewCheckList(isReleaseCopy, isReleaseBack, isCommentCopy);
             }
 
         }
@@ -182,18 +177,21 @@ public class WechatService extends AccessibilityService {
         initManager();
         stateUi = Unknown;
         initOperationVariable();
-        initWindow();
         initWindowView();
         Logger.d();
     }
 
     private void initWindowView() {
-        mWindowView.setViewRootClick(new WindowView.OnWindowViewClickListener() {
+        mWindowView = new WindowView(mContext);
+        mWindowView.setViewCheckList(isReleaseCopy, isReleaseBack, isCommentCopy);
+        mWindowView.setOnViewRootClick(new WindowView.OnWindowViewClickListener() {
             @Override
             public void onWindowClick(View view) {
                 if (isCommentAuto) {
                     if (stateUi == SnsCommentDetailUI) {
-                        checkAndSetDate();
+                        if (commentAutoEvent == null) {
+                            startAutoHandleComment();
+                        }
                     } else {
                         Toast.makeText(mContext, "该功能只在朋友圈详情页生效", Toast.LENGTH_SHORT).show();
                     }
@@ -203,148 +201,136 @@ public class WechatService extends AccessibilityService {
             }
         });
 
-        mWindowView.getViewRoot().setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
+        mWindowView.setOnWindowViewCheckChangeListener(new WindowView.OnWindowViewCheckChangeListener() {
 
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        mStartX = (int) event.getRawX();
-                        mStartY = (int) event.getRawY();
+            @Override
+            public void onChange(@WindowView.Index int index, boolean isChecked) {
+                String key = null;
+                switch (index) {
+                    case WindowView.IndexRelease:
+                        isReleaseCopy = isChecked;
+                        key = Constant.Release_Copy;
                         break;
-                    case MotionEvent.ACTION_MOVE:
-                        mEndX = (int) event.getRawX();
-                        mEndY = (int) event.getRawY();
-                        if (needIntercept()) {
-                            mWLayoutParams.x = (int) (event.getRawX() - mWindowView.getViewRoot().getMeasuredWidth() / 2);
-                            mWLayoutParams.y = (int) (event.getRawY() - mWindowView.getViewRoot().getMeasuredHeight() / 2);
-                            mWindowManager.updateViewLayout(mWindowView.getViewRoot(), mWLayoutParams);
-                            return true;
-                        }
+                    case WindowView.IndexBack:
+                        isReleaseBack = isChecked;
+                        key = Constant.Release_Back;
                         break;
-                    case MotionEvent.ACTION_UP:
-                        if (needIntercept()) {
-                            return true;
-                        }
-                        break;
-                    default:
+                    case WindowView.IndexComment:
+                        isCommentCopy = isChecked;
+                        key = Constant.Comment_Copy;
                         break;
                 }
-
-                return false;
-            }
-
-            private boolean needIntercept() {
-                return Math.abs(mStartX - mEndX) > 30 || Math.abs(mStartY - mEndY) > 30;
+                if (key != null) {
+                    SPUtils.putApply(mContext, key, isChecked);
+                }
             }
         });
 
     }
 
-    private void checkAndSetDate() {
+    private void startAutoHandleComment() {
+        commentAutoEvent = new CommentAutoEvent();
+        mWindowView.setMainTitle("任务开始");
 
         AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
         if (infoTargetName == null) {
+            mWindowView.setMainTitle("点击开始");
+            commentAutoEvent.setState(CommentAutoEvent.Finish);
+            commentAutoEvent = null;
             Toast.makeText(mContext, "请滚动到顶部显示该条朋友圈作者", Toast.LENGTH_SHORT).show();
             return;
         }
         String authorName = infoTargetName.getText().toString();
         String setAuthorName = (String) SPUtils.get(mContext, Constant.Comment_Auto_Content, Constant.Empty);
         if (!authorName.equals(setAuthorName)) {
+            mWindowView.setMainTitle("点击开始");
+            commentAutoEvent.setState(CommentAutoEvent.Finish);
+            commentAutoEvent = null;
             Toast.makeText(mContext, "该条朋友圈作者与插件中输入的名字不符", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        LinkedHashSet<CommentDateModel> set = new LinkedHashSet<>();
-        getListViewItemInfo(set);
-
-        Logger.d("set.size()=" + set.size());
+        LinkedHashSet<CommentDateModel> setDate = new LinkedHashSet<>();
+        getCommentListViewItemInfo(setDate);
 
         ArrayList<CommentRelationModel> targetList = new ArrayList<>();
         ArrayList<CommentRelationModel> coverList = new ArrayList<>();
 
-        String itemTitle;
-        String itemContent;
-        Iterator<CommentDateModel> infoIterator = set.iterator();
-        CommentDateModel infoFor;
-        while (infoIterator.hasNext()) {
-            infoFor = infoIterator.next();
-
-            itemTitle = infoFor.getTitle();
-            itemContent = infoFor.getContent();
-
-            if (itemTitle.contains("回复")) {
-                int result = itemTitle.indexOf(authorName);
-                if (result != -1 && result != 0) {
-                    //回复评论 回复中有朵朵 并且不为首位 即同学回复朵朵的title 存入目标集合
-                    targetList.add(new CommentRelationModel(itemContent));
-                }
-            } else {
-                if (itemTitle.equals(authorName)) {
-                    //朵朵的发布的评论
-                    coverList.add(new CommentRelationModel(itemContent));
-                } else {
-                    //评论 且不是朵朵发布的 即同学的评论
-                    targetList.add(new CommentRelationModel(itemContent));
-                }
-            }
-        }
-
-        ArrayList<String> result = RelationUtils.getResult(targetList, coverList);
+        RelationUtils.getRelationDates(setDate, authorName, targetList, coverList);
+        ArrayList<String> result = RelationUtils.getMapRelationResult(targetList, coverList);
 
         if (result.isEmpty()) {
             Toast.makeText(mContext, "没有需要处理的内容", Toast.LENGTH_SHORT).show();
+            mWindowView.setMainTitle("点击开始");
+            commentAutoEvent.setState(CommentAutoEvent.Finish);
+            commentAutoEvent = null;
             return;
         }
 
         final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
 
-        long time = 200;
-
         try {
+            //清除输入框带有的回复
             PerformUtils.performAction(nodeInfo);
-            Thread.sleep(time);
+            Thread.sleep(delayTime);
             performGlobalAction(GLOBAL_ACTION_BACK);
-            Thread.sleep(time);
+            Thread.sleep(delayTime);
 
-            for (String item :
-                    result) {
+            //遍历自动发送
+            for (String item : result) {
+                Logger.d("comment item=" + item);
                 Bundle arguments = new Bundle();
-                arguments.putCharSequence(AccessibilityNodeInfo
-                        .ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
+                arguments.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
                 PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
-                Thread.sleep(time);
+                Thread.sleep(delayTime >> 1);
                 PerformUtils.performAction(findViewClickByText(mService, "发送"));
-                Thread.sleep(time);
+                Thread.sleep(delayTime >> 1);
             }
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        mWindowView.setMainTitle("点击开始");
+        commentAutoEvent.setState(CommentAutoEvent.Finish);
+        commentAutoEvent = null;
     }
 
-    private LinkedHashSet<CommentDateModel> getListViewItemInfo(LinkedHashSet<CommentDateModel> set) {
-        AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
+
+    /**
+     * 获取评论列表 的关键数据 包含去重操作（set集合实现）和自动滚动 递归调用方法
+     *
+     * @param setDate
+     * @return 返回有序去重的文字数据
+     */
+    private LinkedHashSet<CommentDateModel> getCommentListViewItemInfo(LinkedHashSet<CommentDateModel> setDate) {
+        final int indexValidStart = 0;/*评论Layout在父容器中的有效起始 索引值 因为评论列表索引肯定大于0*/
+        final int indexViewTitle = 1;/*评论标题 位置索引*/
+        final int indexViewContent = 3;/*评论内容 位置索引*/
+
         List<AccessibilityNodeInfo> infoList = findViewListById(mService, IdLayoutTimeLineDetailListItem);
 
-        AccessibilityNodeInfo itemInfo;
         CommentDateModel itemModel;
         int index;
         String title;
         String content;
 
-        for (int i = 0; i < infoList.size(); i++) {
-            itemInfo = infoList.get(i);
-            index = itemInfo.getCollectionItemInfo().getRowIndex();
-            if (itemInfo.getChild(1) != null && itemInfo.getChild(3) != null) {
-                //索引1=名称 索引3=内容 trim是为去除控件产生的空格
-                title = itemInfo.getChild(1).getText().toString().trim();
-                content = itemInfo.getChild(3).getText().toString().trim();
+        for (AccessibilityNodeInfo itemInfo : infoList) {
+            //获取索引 兼容处理 行索引有效还是列索引有效问题 即判定是否大于有效起始值
+            index = itemInfo.getCollectionItemInfo().getRowIndex() > indexValidStart ? itemInfo.getCollectionItemInfo().getRowIndex() : itemInfo.getCollectionItemInfo().getColumnIndex();
+
+            //非空检查
+            if (itemInfo.getChild(indexViewTitle) != null && itemInfo.getChild(indexViewContent) != null) {
+                //trim() 是为去除控件产生的空格
+                title = itemInfo.getChild(indexViewTitle).getText().toString().trim();
+                content = itemInfo.getChild(indexViewContent).getText().toString().trim();
                 itemModel = new CommentDateModel(index, title, content);
-                set.add(itemModel);
+                setDate.add(itemModel);
             }
         }
 
+
+        AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
         if (!PerformUtils.checkScrollViewBottom(info)) {
             PerformUtils.performAction(info, AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
             try {
@@ -352,10 +338,10 @@ public class WechatService extends AccessibilityService {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            return getListViewItemInfo(set);
+            return getCommentListViewItemInfo(setDate);
         } else {
             Logger.d("已经到底了");
-            return set;
+            return setDate;
         }
 
     }
@@ -364,13 +350,13 @@ public class WechatService extends AccessibilityService {
     public void onInterrupt() {
         SPUtils.getSharedPreference(mContext).unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
         Logger.d("服务中断，如授权关闭或者将服务杀死");
-        mWindowManager.removeViewImmediate(mWindowView.getViewRoot());
+        mWindowView.removeView();
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
         Logger.d("服务被解绑");
-        mWindowManager.removeViewImmediate(mWindowView.getViewRoot());
+        mWindowView.removeView();
         return super.onUnbind(intent);
     }
 
@@ -382,25 +368,8 @@ public class WechatService extends AccessibilityService {
 
     private void initManager() {
         mClipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
-        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
     }
 
-    private void initWindow() {
-        mWLayoutParams = new WindowManager.LayoutParams();
-        mWLayoutParams.type = WindowManager.LayoutParams.TYPE_PHONE;
-        mWLayoutParams.format = PixelFormat.TRANSLUCENT;
-        mWLayoutParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE;
-        mWLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
-        mWLayoutParams.x = 100;
-        mWLayoutParams.y = 300;
-        mWLayoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT;
-        mWLayoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
-
-        mWindowView = new WindowView(LayoutInflater.from(mContext).inflate(R.layout.layout_window, null));
-
-        mWindowManager.addView(mWindowView.getViewRoot(), mWLayoutParams);
-
-    }
 
     @NonNull
     private AccessibilityServiceInfo initServiceInfo() {
@@ -415,13 +384,13 @@ public class WechatService extends AccessibilityService {
 
     private void initOperationVariable() {
         isReleaseCopy = (boolean) SPUtils.get(mContext, Constant.Release_Copy, false);
-        isReleaseReply = (boolean) SPUtils.get(mContext, Constant.Release_Reply, false);
+        isReleaseBack = (boolean) SPUtils.get(mContext, Constant.Release_Back, false);
 
         isQuickNewFriendsAccept = (boolean) SPUtils.get(mContext, Constant.Quick_Accept, false);
         isQuickNewFriendsReply = (boolean) SPUtils.get(mContext, Constant.Quick_Reply, false);
         isQuickOffLine = (boolean) SPUtils.get(mContext, Constant.Quick_Offline, false);
 
-        isCommentCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Timeline, false);
+        isCommentCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Copy, false);
         isCommentAuto = (boolean) SPUtils.get(mContext, Constant.Comment_Auto, false);
 
         SPUtils.getSharedPreference(mContext).registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
@@ -532,11 +501,11 @@ public class WechatService extends AccessibilityService {
 
                 if (isCommentCopy) {
                     if (className.equals("android.widget.Toast$TN") && "已复制".equals(text)) {
-                        if (stateUi == SnsTimeLineUI && lineCopyReplyModel != null) {
+                        if (stateUi == SnsTimeLineUI && commentCopyEvent != null) {
                             autoCopyFindViewAndCopy();
                         }
 
-                        if (stateUi == SnsCommentDetailUI && lineCopyReplyModel != null) {
+                        if (stateUi == SnsCommentDetailUI && commentCopyEvent != null) {
                             autoDetailCopyFillOut();
                         }
                         return;
@@ -572,7 +541,7 @@ public class WechatService extends AccessibilityService {
 
             case AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED://view的文字内容改变
 
-                if (isReleaseReply && stateUi == SnsUploadUI) {
+                if (isReleaseBack && stateUi == SnsUploadUI) {
                     autoReplySetDate(text);
                 }
 
@@ -580,7 +549,7 @@ public class WechatService extends AccessibilityService {
 
             case AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED:
 
-                if (lineCopyReplyModel != null && lineCopyReplyModel.getState() == TimeLineCopyReplyEvent.Find) {
+                if (commentCopyEvent != null && commentCopyEvent.getState() == CommentCopyEvent.Find) {
                     autoCopyFillOut();
                 }
 
@@ -610,7 +579,7 @@ public class WechatService extends AccessibilityService {
      * 第三步 自动填写
      */
     private void autoCopyFillOut() {
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.FillOut);
+        commentCopyEvent.setState(CommentCopyEvent.FillOut);
 
         final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
         //微信应该做了防抖动处理 所以需要延迟后执行
@@ -636,8 +605,8 @@ public class WechatService extends AccessibilityService {
             }
         }, delayTime * position);
 
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.Finish);
-        lineCopyReplyModel = null;
+        commentCopyEvent.setState(CommentCopyEvent.Finish);
+        commentCopyEvent = null;
     }
 
     /**
@@ -646,9 +615,9 @@ public class WechatService extends AccessibilityService {
      */
     private void autoCopyFindViewAndCopy() {
 
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.Find);
+        commentCopyEvent.setState(CommentCopyEvent.Find);
         List<AccessibilityNodeInfo> list = findViewListById(mService, IdButtonComment);
-        Rect rectTarget = lineCopyReplyModel.getEventRect();
+        Rect rectTarget = commentCopyEvent.getEventRect();
         Rect rectItem = new Rect();
 
         AccessibilityNodeInfo info = null;
@@ -686,7 +655,7 @@ public class WechatService extends AccessibilityService {
 
         Rect rect = new Rect();
         event.getSource().getBoundsInScreen(rect);
-        lineCopyReplyModel = new TimeLineCopyReplyEvent(getClipBoardDate(), rect);
+        commentCopyEvent = new CommentCopyEvent(getClipBoardDate(), rect);
     }
 
     /**
@@ -696,7 +665,7 @@ public class WechatService extends AccessibilityService {
     private void autoDetailCopyFillOut() {
 
 
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.FillOut);
+        commentCopyEvent.setState(CommentCopyEvent.FillOut);
 
         final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
 
@@ -733,8 +702,8 @@ public class WechatService extends AccessibilityService {
         }, delayTime * position);
 
 
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.Finish);
-        lineCopyReplyModel = null;
+        commentCopyEvent.setState(CommentCopyEvent.Finish);
+        commentCopyEvent = null;
     }
 
     /**
@@ -748,9 +717,9 @@ public class WechatService extends AccessibilityService {
         if (!PerformUtils.containAction(event.getSource(), AccessibilityNodeInfo.AccessibilityAction.ACTION_CLICK))
             return;
 
-        lineCopyReplyModel = new TimeLineCopyReplyEvent(getClipBoardDate(), null);
+        commentCopyEvent = new CommentCopyEvent(getClipBoardDate(), null);
 
-        lineCopyReplyModel.setState(TimeLineCopyReplyEvent.Find);//详情页只有一个评论按钮 不需要遍历匹配查找
+        commentCopyEvent.setState(CommentCopyEvent.Find);//详情页只有一个评论按钮 不需要遍历匹配查找
 
     }
 

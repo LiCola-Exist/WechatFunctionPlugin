@@ -2,7 +2,6 @@
 <android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@color/background">
 
     <LinearLayout
@@ -12,7 +11,6 @@
         android:orientation="vertical">
 
         <LinearLayout
-            tools:visibility="gone"
             android:id="@+id/layout_release"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -62,7 +60,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="聊天内容复制快速发布"
+                            android:text="@string/txt_release_copy"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -82,7 +80,7 @@
                     android:paddingTop="12dp">
 
                     <CheckBox
-                        android:id="@+id/check_release_reply"
+                        android:id="@+id/check_release_back"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center" />
@@ -98,12 +96,12 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="发布朋友圈后返回并复制文字到粘贴板"
+                            android:text="@string/txt_release_reply"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/txt_release_reply_content"
+                            android:id="@+id/txt_release_back_content"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
@@ -115,7 +113,7 @@
                     </LinearLayout>
 
                     <ImageView
-                        android:id="@+id/img_release_reply"
+                        android:id="@+id/img_release_back"
                         android:layout_width="44dp"
                         android:layout_height="44dp"
                         android:layout_gravity="center"
@@ -190,7 +188,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="快捷接受新增好友请求"
+                            android:text="@string/txt_quick_accept"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -225,7 +223,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="新增好友的自动回复"
+                            android:text="@string/txt_quick_reply"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -278,7 +276,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="设置不在线状态自动回复"
+                            android:text="@string/txt_quick_offline"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -334,7 +332,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12dp"
-                android:text="朋友圈回复"
+                android:text="朋友圈"
                 android:textSize="15sp" />
 
             <LinearLayout
@@ -354,7 +352,7 @@
                     android:paddingTop="12dp">
 
                     <CheckBox
-                        android:id="@+id/check_comment_timeline"
+                        android:id="@+id/check_comment_copy"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center" />
@@ -370,7 +368,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="对朋友圈评论快捷复制回复"
+                            android:text="@string/txt_comment_copy"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 
@@ -405,7 +403,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="自动回复朋友圈评论"
+                            android:text="@string/txt_comment_auto"
                             android:textColor="@color/primary_text"
                             android:textSize="18sp" />
 

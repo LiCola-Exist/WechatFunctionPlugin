@@ -24,6 +24,10 @@ public class CommentDateModel {
         return content;
     }
 
+    public Integer getIndex() {
+        return index;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

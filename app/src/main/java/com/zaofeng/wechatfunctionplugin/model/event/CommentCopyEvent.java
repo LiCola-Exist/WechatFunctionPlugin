@@ -11,7 +11,7 @@ import java.lang.annotation.RetentionPolicy;
  * 自动快捷回复新增好友 带状态
  */
 
-public class TimeLineCopyReplyEvent {
+public class CommentCopyEvent {
     public static final int BreakOff = 0;
     public static final int Start = 1;
     public static final int Find = 2;
@@ -28,7 +28,7 @@ public class TimeLineCopyReplyEvent {
     private Rect eventRect;//事件开始的范围
 
 
-    public TimeLineCopyReplyEvent(String replyContent, Rect rect) {
+    public CommentCopyEvent(String replyContent, Rect rect) {
         state = Start;
         ReplyContent = replyContent;
         eventRect=rect;

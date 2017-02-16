@@ -29,16 +29,14 @@ import butterknife.OnClick;
 public class MainActivity extends AppCompatActivity {
 
     @BindView(R.id.check_release_copy)
-    CheckBox checkCopyRelease;
-    @BindView(R.id.layout_release_copy)
-    LinearLayout layoutCopyRelease;
+    CheckBox checkReleaseCopy;
 
-    @BindView(R.id.check_release_reply)
-    CheckBox checkPostReply;
-    @BindView(R.id.txt_release_reply_content)
-    TextView txtPostReplyContent;
-    @BindView(R.id.img_release_reply)
-    ImageView imgPostReply;
+    @BindView(R.id.check_release_back)
+    CheckBox checkReleaseBack;
+    @BindView(R.id.txt_release_back_content)
+    TextView txtReleaseBackContent;
+    @BindView(R.id.img_release_back)
+    ImageView imgReleaseBack;
 
 
     @BindView(R.id.check_quick_accept)
@@ -60,8 +58,8 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.img_quick_offline)
     ImageView imgQuickOffline;
 
-    @BindView(R.id.check_comment_timeline)
-    CheckBox checkCommentTimeLine;
+    @BindView(R.id.check_comment_copy)
+    CheckBox checkCommentCopy;
 
     @BindView(R.id.check_comment_auto)
     CheckBox checkCommentAuto;
@@ -86,8 +84,20 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         initFirstDate();
+        initListener();
         initDate();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        initDate();
+    }
+
+    private void initListener() {
+        editDialogFragment = new EditBottomFragment();
+        editInputDateListener = new OnEditInputDateListener();
+        editDialogFragment.setOnEditInputListener(editInputDateListener);
     }
 
     private void initFirstDate() {
@@ -96,11 +106,11 @@ public class MainActivity extends AppCompatActivity {
             new SPBuild(mAppContext)
                     .addData(Constant.First, false)
                     .addData(Constant.Release_Copy, true)
-                    .addData(Constant.Release_Reply, true)
+                    .addData(Constant.Release_Back, true)
                     .addData(Constant.Quick_Accept, true)
                     .addData(Constant.Quick_Reply, true)
                     .addData(Constant.Quick_Offline, false)
-                    .addData(Constant.Comment_Timeline, true)
+                    .addData(Constant.Comment_Copy, true)
                     .addData(Constant.Comment_Auto, true)
                     .addData(Constant.Release_Reply_Content, "默认的回复文字")
                     .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
@@ -112,22 +122,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initDate() {
-        editDialogFragment = new EditBottomFragment();
-        editInputDateListener = new OnEditInputDateListener();
-        editDialogFragment.setOnEditInputListener(editInputDateListener);
 
-        checkCopyRelease.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Copy, false));
-        checkPostReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Reply, false));
+        checkReleaseCopy.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Copy, false));
+        checkReleaseBack.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Back, false));
 
         checkQuickAccept.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Accept, false));
         checkQuickReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Reply, false));
         checkQuickOffline.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Offline, false));
 
-        checkCommentTimeLine.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Timeline, false));
+        checkCommentCopy.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Copy, false));
         checkCommentAuto.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Auto, false));
 
 
-        txtPostReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
+        txtReleaseBackContent.setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
 
         txtQuickReplyContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
         txtQuickOfflineContent.setText((String) SPUtils.get(mAppContext, Constant.Quick_Offline_Content, Constant.Empty));
@@ -137,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @OnCheckedChanged({R.id.check_release_copy, R.id.check_release_reply})
+    @OnCheckedChanged({R.id.check_release_copy, R.id.check_release_back})
     public void onCheckedChangedRelease(CompoundButton button, boolean isChecked) {
 
         int id = button.getId();
@@ -145,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.check_release_copy:
                 SPUtils.putApply(mAppContext, Constant.Release_Copy, isChecked);
                 break;
-            case R.id.check_release_reply:
-                SPUtils.putApply(mAppContext, Constant.Release_Reply, isChecked);
+            case R.id.check_release_back:
+                SPUtils.putApply(mAppContext, Constant.Release_Back, isChecked);
                 break;
         }
     }
@@ -168,12 +175,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @OnCheckedChanged({R.id.check_comment_timeline,R.id.check_comment_auto})
+    @OnCheckedChanged({R.id.check_comment_copy, R.id.check_comment_auto})
     public void onCheckChangedComment(CompoundButton button, boolean isChecked) {
         int id = button.getId();
         switch (id) {
-            case R.id.check_comment_timeline:
-                SPUtils.putApply(mAppContext, Constant.Comment_Timeline, isChecked);
+            case R.id.check_comment_copy:
+                SPUtils.putApply(mAppContext, Constant.Comment_Copy, isChecked);
                 break;
             case R.id.check_comment_auto:
                 SPUtils.putApply(mAppContext, Constant.Comment_Auto, isChecked);
@@ -182,25 +189,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    @OnClick({R.id.img_release_reply, R.id.img_quick_reply, R.id.img_quick_offline,R.id.img_comment_auto})
+    @OnClick({R.id.img_release_back, R.id.img_quick_reply, R.id.img_quick_offline, R.id.img_comment_auto})
     public void onEditClick(View view) {
-        String content=null;
-        switch (view.getId()){
-            case R.id.img_release_reply:
-                content=txtPostReplyContent.getText().toString();
+        String content = null;
+        switch (view.getId()) {
+            case R.id.img_release_back:
+                content = txtReleaseBackContent.getText().toString();
                 break;
             case R.id.img_quick_reply:
-                content=txtQuickReplyContent.getText().toString();
+                content = txtQuickReplyContent.getText().toString();
                 break;
             case R.id.img_quick_offline:
-                content=txtQuickOfflineContent.getText().toString();
+                content = txtQuickOfflineContent.getText().toString();
                 break;
             case R.id.img_comment_auto:
-                content=txtCommentAutoContent.getText().toString();
+                content = txtCommentAutoContent.getText().toString();
                 break;
         }
 
-        editDialogFragment.showWithKey(getSupportFragmentManager(),null,content);
+        editDialogFragment.showWithKey(getSupportFragmentManager(), null, content);
         editInputDateListener.setView(view);
     }
 
@@ -218,8 +225,8 @@ public class MainActivity extends AppCompatActivity {
             if (view == null) return;
             int id = view.getId();
             switch (id) {
-                case R.id.img_release_reply:
-                    txtPostReplyContent.setText(input);
+                case R.id.img_release_back:
+                    txtReleaseBackContent.setText(input);
                     SPUtils.putApply(mAppContext, Constant.Release_Reply_Content, input);
                     break;
                 case R.id.img_quick_reply:

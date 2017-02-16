@@ -14,11 +14,11 @@ public class Constant {
      * check
      */
     public static final String Release_Copy ="Release_Copy";
-    public static final String Release_Reply ="Release_Reply";
+    public static final String Release_Back ="Release_Back";
     public static final String Quick_Accept ="Quick_Accept";
     public static final String Quick_Reply ="Quick_Reply";
     public static final String Quick_Offline ="Quick_Offline";
-    public static final String Comment_Timeline ="Comment_Timeline";
+    public static final String Comment_Copy ="Comment_Copy";
     public static final String Comment_Auto ="Comment_Auto";
 
 

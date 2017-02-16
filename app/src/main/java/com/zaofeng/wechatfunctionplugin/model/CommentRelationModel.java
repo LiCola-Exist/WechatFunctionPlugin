@@ -6,16 +6,15 @@ package com.zaofeng.wechatfunctionplugin.model;
  */
 
 public class CommentRelationModel {
-
+    private Integer index;
     private String content;
-    private boolean isMap;//是否有映射
-    private CommentRelationModel mapModel;//映射的对象
+    private Boolean isMap;//是否有映射
 
 
-    public CommentRelationModel(String content) {
+    public CommentRelationModel(Integer index,String content) {
+        this.index=index;
         this.content = content;
         this.isMap=false;
-        this.mapModel=null;
     }
 
     public String getContent() {
@@ -34,11 +33,7 @@ public class CommentRelationModel {
         isMap = map;
     }
 
-    public CommentRelationModel getMapModel() {
-        return mapModel;
-    }
-
-    public void setMapModel(CommentRelationModel mapModel) {
-        this.mapModel = mapModel;
+    public Integer getIndex() {
+        return index;
     }
 }

@@ -18,5 +18,12 @@
         \n2.自动回复目前只支持朋友圈详情页
         \n3.请在自动回复朋友圈评论下方输入朵朵的名字
     </string>
+    <string name="txt_release_copy">快速发布聊天内容到朋友圈</string>
+    <string name="txt_release_reply">快速返回并复制内容到粘贴板页在朋友圈发布成功后</string>
+    <string name="txt_quick_accept">快捷接受新增好友请求</string>
+    <string name="txt_quick_reply">自动问候新增好友</string>
+    <string name="txt_quick_offline">自动回复当不在线时</string>
+    <string name="txt_comment_copy">快捷评论</string>
+    <string name="txt_comment_auto">自动回复</string>
 
 </resources>
