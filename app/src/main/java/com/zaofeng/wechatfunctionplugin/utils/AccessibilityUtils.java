@@ -114,7 +114,7 @@ public class AccessibilityUtils {
         } else {
             infos = info.findAccessibilityNodeInfosByText(key);
         }
-        info.recycle();
+//        info.recycle();
         return infos;
     }
 
@@ -133,7 +133,7 @@ public class AccessibilityUtils {
         } else {
             infos = info.findAccessibilityNodeInfosByText(key);
         }
-        info.recycle();
+//        info.recycle();
         return checkNodeListRule(infos) ? infos.get(0) : null;
     }
 
