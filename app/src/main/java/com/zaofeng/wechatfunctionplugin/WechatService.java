@@ -282,9 +282,9 @@ public class WechatService extends AccessibilityService {
                 Bundle arguments = new Bundle();
                 arguments.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
                 PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
-                Thread.sleep(delayTime >> 1);
+                Thread.sleep(delayTime);
                 PerformUtils.performAction(findViewClickByText(mService, "发送"));
-                Thread.sleep(delayTime >> 1);
+                Thread.sleep(delayTime);
             }
 
         } catch (InterruptedException e) {
