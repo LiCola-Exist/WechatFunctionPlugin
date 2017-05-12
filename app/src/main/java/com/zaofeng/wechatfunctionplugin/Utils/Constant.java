@@ -6,28 +6,28 @@ package com.zaofeng.wechatfunctionplugin.utils;
 
 public class Constant {
 
-    public static final String Empty="";
+  public static final String Empty = "";
 
-    public static final String First="first";
+  public static final String First = "first";
 
-    /**
-     * check
-     */
-    public static final String Release_Copy ="Release_Copy";
-    public static final String Release_Back ="Release_Back";
-    public static final String Quick_Accept ="Quick_Accept";
-    public static final String Quick_Reply ="Quick_Reply";
-    public static final String Quick_Offline ="Quick_Offline";
-    public static final String Comment_Copy ="Comment_Copy";
-    public static final String Comment_Auto ="Comment_Auto";
+  /**
+   * check
+   */
+  public static final String Release_Copy = "Release_Copy";
+  public static final String Release_Back = "Release_Back";
+  public static final String Quick_Accept = "Quick_Accept";
+  public static final String Quick_Reply = "Quick_Reply";
+  public static final String Quick_Offline = "Quick_Offline";
+  public static final String Comment_Copy = "Comment_Copy";
+  public static final String Comment_Auto = "Comment_Auto";
 
 
-    /**
-     * text
-     */
+  /**
+   * text
+   */
 
-    public static final String Release_Reply_Content="Release_Reply_Content";
-    public static final String Quick_Reply_Content="Quick_Reply_Content";
-    public static final String Quick_Offline_Content="Quick_Offline_Content";
-    public static final String Comment_Auto_Content="Comment_Auto_Content";
+  public static final String Release_Reply_Content = "Release_Reply_Content";
+  public static final String Quick_Reply_Content = "Quick_Reply_Content";
+  public static final String Quick_Offline_Content = "Quick_Offline_Content";
+  public static final String Comment_Auto_Content = "Comment_Auto_Content";
 }

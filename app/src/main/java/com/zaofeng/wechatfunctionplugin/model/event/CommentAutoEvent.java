@@ -1,7 +1,6 @@
 package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,29 +10,30 @@ import java.lang.annotation.RetentionPolicy;
  */
 
 public class CommentAutoEvent {
-    public static final int BreakOff = 0;
-    public static final int Start = 1;
-    public static final int Finish = 4;
 
-    @IntDef({BreakOff, Start, Finish})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface State {
-    }
+  public static final int BreakOff = 0;
+  public static final int Start = 1;
+  public static final int Finish = 4;
+  private int state;
 
-    private int state;
+  public CommentAutoEvent() {
+    state = Start;
+  }
 
-    public CommentAutoEvent() {
-        state = Start;
-    }
+  public
+  @State
+  int getState() {
+    return state;
+  }
 
-    public
-    @State
-    int getState() {
-        return state;
-    }
+  public void setState(@State int state) {
+    this.state = state;
+  }
 
-    public void setState(@State int state) {
-        this.state = state;
-    }
+  @IntDef({BreakOff, Start, Finish})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface State {
+
+  }
 
 }

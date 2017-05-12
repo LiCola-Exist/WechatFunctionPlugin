@@ -2,7 +2,6 @@ package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.graphics.Rect;
 import android.support.annotation.IntDef;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -12,43 +11,42 @@ import java.lang.annotation.RetentionPolicy;
  */
 
 public class CommentCopyEvent {
-    public static final int BreakOff = 0;
-    public static final int Start = 1;
-    public static final int Find = 2;
-    public static final int FillOut = 3;
-    public static final int Finish = 4;
 
-    @IntDef({BreakOff, Start,Find, FillOut, Finish})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface State {
-    }
+  public static final int BreakOff = 0;
+  public static final int Start = 1;
+  public static final int Find = 2;
+  public static final int FillOut = 3;
+  public static final int Finish = 4;
+  private int state;
+  private String ReplyContent;
+  private Rect eventRect;//事件开始的范围
+  public CommentCopyEvent(String replyContent, Rect rect) {
+    state = Start;
+    ReplyContent = replyContent;
+    eventRect = rect;
+  }
 
-    private int state;
-    private String ReplyContent;
-    private Rect eventRect;//事件开始的范围
+  public
+  @State
+  int getState() {
+    return state;
+  }
 
+  public void setState(@State int state) {
+    this.state = state;
+  }
 
-    public CommentCopyEvent(String replyContent, Rect rect) {
-        state = Start;
-        ReplyContent = replyContent;
-        eventRect=rect;
-    }
+  public String getReplyContent() {
+    return ReplyContent;
+  }
 
-    public
-    @State
-    int getState() {
-        return state;
-    }
+  public Rect getEventRect() {
+    return eventRect;
+  }
 
-    public void setState(@State int state) {
-        this.state = state;
-    }
+  @IntDef({BreakOff, Start, Find, FillOut, Finish})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface State {
 
-    public String getReplyContent() {
-        return ReplyContent;
-    }
-
-    public Rect getEventRect() {
-        return eventRect;
-    }
+  }
 }

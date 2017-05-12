@@ -6,34 +6,35 @@ package com.zaofeng.wechatfunctionplugin.model;
  */
 
 public class CommentRelationModel {
-    private Integer index;
-    private String content;
-    private Boolean isMap;//是否有映射
+
+  private Integer index;
+  private String content;
+  private Boolean isMap;//是否有映射
 
 
-    public CommentRelationModel(Integer index,String content) {
-        this.index=index;
-        this.content = content;
-        this.isMap=false;
-    }
+  public CommentRelationModel(Integer index, String content) {
+    this.index = index;
+    this.content = content;
+    this.isMap = false;
+  }
 
-    public String getContent() {
-        return content;
-    }
+  public String getContent() {
+    return content;
+  }
 
-    public void setContent(String content) {
-        this.content = content;
-    }
+  public void setContent(String content) {
+    this.content = content;
+  }
 
-    public boolean isMap() {
-        return isMap;
-    }
+  public boolean isMap() {
+    return isMap;
+  }
 
-    public void setMap(boolean map) {
-        isMap = map;
-    }
+  public void setMap(boolean map) {
+    isMap = map;
+  }
 
-    public Integer getIndex() {
-        return index;
-    }
+  public Integer getIndex() {
+    return index;
+  }
 }

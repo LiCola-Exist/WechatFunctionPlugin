@@ -1,7 +1,6 @@
 package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,56 +10,59 @@ import java.lang.annotation.RetentionPolicy;
  */
 
 public class AutoReplyEvent {
-    public static final int BreakOff=0;
-    public static final int Start=1;
-    public static final int Upload=2;
-    public static final int Jump =3;
-    public static final int Finish=6;
 
-    @IntDef({BreakOff,Start,Upload, Jump,Finish})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface State{}
+  public static final int BreakOff = 0;
+  public static final int Start = 1;
+  public static final int Upload = 2;
+  public static final int Jump = 3;
+  public static final int Finish = 6;
+  private int state;
+  private String TimeLineContent;
+  private String ReplyContent;
+  public AutoReplyEvent(String timeLineContent, String replyContent) {
+    state = Start;
+    TimeLineContent = timeLineContent;
+    ReplyContent = replyContent;
+  }
 
-    private int state;
-    private String TimeLineContent;
-    private String ReplyContent;
+  public
+  @State
+  int getState() {
+    return state;
+  }
 
-    public AutoReplyEvent(String timeLineContent, String replyContent) {
-        state=Start;
-        TimeLineContent = timeLineContent;
-        ReplyContent = replyContent;
-    }
+  public void setState(@State int state) {
+    this.state = state;
+  }
 
-    public @State int getState() {
-        return state;
-    }
+  public String getTimeLineContent() {
+    return TimeLineContent;
+  }
 
-    public void setState(@State int state) {
-        this.state = state;
-    }
+  public void setTimeLineContent(String timeLineContent) {
+    TimeLineContent = timeLineContent;
+  }
 
-    public String getTimeLineContent() {
-        return TimeLineContent;
-    }
+  public String getReplyContent() {
+    return ReplyContent;
+  }
 
-    public void setTimeLineContent(String timeLineContent) {
-        TimeLineContent = timeLineContent;
-    }
+  public void setReplyContent(String replyContent) {
+    ReplyContent = replyContent;
+  }
 
-    public String getReplyContent() {
-        return ReplyContent;
-    }
+  @Override
+  public String toString() {
+    return "AutoReplyEvent{" +
+        "state=" + state +
+        ", TimeLineContent='" + TimeLineContent + '\'' +
+        ", ReplyContent='" + ReplyContent + '\'' +
+        '}';
+  }
 
-    public void setReplyContent(String replyContent) {
-        ReplyContent = replyContent;
-    }
+  @IntDef({BreakOff, Start, Upload, Jump, Finish})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface State {
 
-    @Override
-    public String toString() {
-        return "AutoReplyEvent{" +
-                "state=" + state +
-                ", TimeLineContent='" + TimeLineContent + '\'' +
-                ", ReplyContent='" + ReplyContent + '\'' +
-                '}';
-    }
+  }
 }

@@ -1,7 +1,6 @@
 package com.zaofeng.wechatfunctionplugin.model.event;
 
 import android.support.annotation.IntDef;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,35 +10,35 @@ import java.lang.annotation.RetentionPolicy;
  */
 
 public class FastNewFriendReplyEvent {
-    public static final int BreakOff = 0;
-    public static final int Start = 1;
-    public static final int FillOut = 2;
-    public static final int Finish = 5;
 
-    @IntDef({BreakOff, Start, FillOut, Finish})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface State {
-    }
+  public static final int BreakOff = 0;
+  public static final int Start = 1;
+  public static final int FillOut = 2;
+  public static final int Finish = 5;
+  private int state;
+  private String ReplyContent;
+  public FastNewFriendReplyEvent(String replyContent) {
+    state = Start;
+    ReplyContent = replyContent;
+  }
 
-    private int state;
-    private String ReplyContent;
+  public
+  @State
+  int getState() {
+    return state;
+  }
 
-    public FastNewFriendReplyEvent(String replyContent) {
-        state = Start;
-        ReplyContent = replyContent;
-    }
+  public void setState(@State int state) {
+    this.state = state;
+  }
 
-    public
-    @State
-    int getState() {
-        return state;
-    }
+  public String getReplyContent() {
+    return ReplyContent;
+  }
 
-    public void setState(@State int state) {
-        this.state = state;
-    }
+  @IntDef({BreakOff, Start, FillOut, Finish})
+  @Retention(RetentionPolicy.SOURCE)
+  public @interface State {
 
-    public String getReplyContent() {
-        return ReplyContent;
-    }
+  }
 }

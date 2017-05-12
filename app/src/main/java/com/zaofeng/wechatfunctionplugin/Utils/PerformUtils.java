@@ -2,7 +2,6 @@ package com.zaofeng.wechatfunctionplugin.utils;
 
 import android.os.Bundle;
 import android.view.accessibility.AccessibilityNodeInfo;
-
 import java.util.List;
 
 /**
@@ -12,64 +11,54 @@ import java.util.List;
 public class PerformUtils {
 
 
+  public static boolean performAction(AccessibilityNodeInfo info) {
+    return performAction(info, AccessibilityNodeInfo.ACTION_CLICK);
+  }
 
-    public static boolean performAction(AccessibilityNodeInfo info) {
-        return performAction(info, AccessibilityNodeInfo.ACTION_CLICK);
-    }
+  /**
+   * 执行动作 包含非空检查
+   *
+   * @param info 目标对象
+   * @param action 行为
+   * @return false 执行失败或者info为空 true if the action was performed
+   */
+  public static boolean performAction(AccessibilityNodeInfo info, int action) {
+    return info != null && info.performAction(action);
+  }
 
-    /**
-     * 执行动作 包含非空检查
-     *
-     * @param info   目标对象
-     * @param action 行为
-     * @return false 执行失败或者info为空 true if the action was performed
-     */
-    public static boolean performAction(AccessibilityNodeInfo info, int action) {
-        return info != null && info.performAction(action);
-    }
+  public static boolean performAction(AccessibilityNodeInfo info, int action, Bundle arguments) {
+    return info != null && info.performAction(action, arguments);
+  }
 
-    public static boolean performAction(AccessibilityNodeInfo info, int action,Bundle arguments) {
-        return info != null && info.performAction(action,arguments);
-    }
+  /**
+   * 滚动控件 是否滚动到头部 即不包含向后backward动作
+   */
+  public static boolean checkScrollViewTop(AccessibilityNodeInfo info) {
+    return !containAction(info, AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
+  }
 
-    /**
-     * 滚动控件 是否滚动到头部 即不包含向后backward动作
-     *
-     * @param info
-     * @return
-     */
-    public static boolean checkScrollViewTop(AccessibilityNodeInfo info) {
-        return !containAction(info, AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_BACKWARD);
-    }
+  /**
+   * 滚动控件 是否滚动到底部 即不包含向前forward动作
+   *
+   * @return true 滚动到底部 false 还没有到底
+   */
+  public static boolean checkScrollViewBottom(AccessibilityNodeInfo info) {
+    return !containAction(info, AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+  }
 
-    /**
-     * 滚动控件 是否滚动到底部 即不包含向前forward动作
-     *
-     * @param info
-     * @return true 滚动到底部 false 还没有到底
-     *
-     *
-     */
-    public static boolean checkScrollViewBottom(AccessibilityNodeInfo info) {
-        return !containAction(info, AccessibilityNodeInfo.AccessibilityAction.ACTION_SCROLL_FORWARD);
+  /**
+   * 检查info是否包含某个行为
+   */
+  public static boolean containAction(AccessibilityNodeInfo info,
+      AccessibilityNodeInfo.AccessibilityAction action) {
+    List<AccessibilityNodeInfo.AccessibilityAction> listAction = info.getActionList();
+    for (AccessibilityNodeInfo.AccessibilityAction item : listAction) {
+      if (item.equals(action)) {
+        return true;
+      }
     }
-
-    /**
-     * 检查info是否包含某个行为
-     *
-     * @param info
-     * @param action
-     * @return
-     */
-    public static boolean containAction(AccessibilityNodeInfo info, AccessibilityNodeInfo.AccessibilityAction action) {
-        List<AccessibilityNodeInfo.AccessibilityAction> listAction = info.getActionList();
-        for (AccessibilityNodeInfo.AccessibilityAction item : listAction) {
-            if (item.equals(action)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    return false;
+  }
 
 
 }
