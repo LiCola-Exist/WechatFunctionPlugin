@@ -1,6 +1,5 @@
 package com.zaofeng.wechatfunctionplugin;
 
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassAlbumPreviewUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassContactInfoUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassFMessageConversationUI;
@@ -8,9 +7,7 @@ import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassLau
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsCommentDetailUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsTimeLineUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsTimeLineUploadUI;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdButtonSend;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdButtonVoiceChat;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditChat;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListViewChat;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.AlbumPreviewUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.ChatUI;
@@ -20,9 +17,6 @@ import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsComment
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsTimeLineUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsUploadUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.Unknown;
-import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewById;
-import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickById;
-import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.hasViewById;
 
 import android.accessibilityservice.AccessibilityService;
@@ -38,8 +32,8 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
 import com.zaofeng.wechatfunctionplugin.action.BaseAction;
+import com.zaofeng.wechatfunctionplugin.action.EventAutoReplyAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionAutoCopyCommentAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionFastBackChatAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionFastCopyCommentAction;
@@ -47,7 +41,6 @@ import com.zaofeng.wechatfunctionplugin.action.MotionFastReleaseLineAction;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
 import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
-import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
 
@@ -62,9 +55,7 @@ public class WeChatService extends AccessibilityService {
    * 基本组件
    */
   private Context mContext;
-  private Handler handler = new Handler();
   private AccessibilityService mService;
-  private ClipboardManager mClipboardManager;
   private WindowView mWindowView;
 
   private boolean isDebug = BuildConfig.DEBUG;
@@ -78,6 +69,8 @@ public class WeChatService extends AccessibilityService {
   private MotionAutoCopyCommentAction motionAutoCopyCommentAction;//自动复制评论
   private MotionFastCopyCommentAction motionFastCopyCommentAction;//快速评论复制回复
 
+  private EventAutoReplyAction eventAutoReplyAction;//自动回复
+
   /**
    * 系统会在成功连接上服务时候调用这个方法
    * 初始化参数和工具类
@@ -87,7 +80,6 @@ public class WeChatService extends AccessibilityService {
     mContext = getApplicationContext();
     mService = this;
     this.setServiceInfo(initServiceInfo());
-    initManager();
     statusUi = Unknown;
     initOperationVariable();
     initWindowView();
@@ -103,8 +95,11 @@ public class WeChatService extends AccessibilityService {
 
     motionFastBackChatAction = new MotionFastBackChatAction(
         mContext, mWindowView, mService,
-        (boolean) SPUtils.get(mContext, Constant.Release_Back, false), mClipboardManager
+        (boolean) SPUtils.get(mContext, Constant.Release_Back, false)
     );
+
+    eventAutoReplyAction = new EventAutoReplyAction(mContext, mWindowView, mService,
+        (boolean) SPUtils.get(mContext, Constant.Release_Back, false));
 
     motionAutoCopyCommentAction = new MotionAutoCopyCommentAction(
         mContext, mWindowView, mService,
@@ -167,7 +162,8 @@ public class WeChatService extends AccessibilityService {
         motionFastBackChatAction
             .setOpen(sharedPreferences.getBoolean(Constant.Release_Back, false));
       } else if (key.equals(Constant.Quick_Offline)) {
-
+        eventAutoReplyAction
+            .setOpen(sharedPreferences.getBoolean(Constant.Quick_Offline, false));
       } else if (key.equals(Constant.Comment_Copy)) {
         motionFastCopyCommentAction
             .setOpen(sharedPreferences.getBoolean(Constant.Comment_Copy, false));
@@ -204,9 +200,7 @@ public class WeChatService extends AccessibilityService {
     return super.onKeyEvent(event);
   }
 
-  private void initManager() {
-    mClipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
-  }
+
 
   @NonNull
   private AccessibilityServiceInfo initServiceInfo() {
@@ -227,8 +221,8 @@ public class WeChatService extends AccessibilityService {
   }
 
   /**
-   * @param event [210,1098][1035,1157]
-   * 9895
+   * 接收Accessibility事件方法
+   * @param event
    */
   @Override
   public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -242,7 +236,7 @@ public class WeChatService extends AccessibilityService {
           case ClassLauncherUI:
             Logger.d("正在主页或聊天页");
             statusUi = ChatUI;
-
+            eventAutoReplyAction.action(BaseAction.Step1,statusUi,event);
             break;
           case ClassAlbumPreviewUI:
             Logger.d("正在相册选择页");
@@ -300,7 +294,6 @@ public class WeChatService extends AccessibilityService {
 
         break;
       case AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED://通知事件 toast也包括
-
         if (className.equals("android.widget.Toast$TN") && "已复制".equals(text)) {
           if (motionFastCopyCommentAction.action(BaseAction.Step1, statusUi, event)) {
             return;
@@ -308,17 +301,17 @@ public class WeChatService extends AccessibilityService {
           if (motionFastReleaseLineAction.action(BaseAction.Step0, statusUi, event)) {
             return;
           }
+        } else if ((className.equals("android.app.Notification") && (!text.isEmpty()))) {
+          eventAutoReplyAction.action(BaseAction.Step0,statusUi,event);
         }
 
         break;
       case AccessibilityEvent.TYPE_VIEW_CLICKED://点击事件
-
         if ("发送".equals(text)) {
           if (motionFastBackChatAction.action(BaseAction.Step0, statusUi, event)) {
             return;
           }
         }
-
         break;
 
       case AccessibilityEvent.TYPE_VIEW_LONG_CLICKED:
@@ -327,13 +320,7 @@ public class WeChatService extends AccessibilityService {
         }
 
         break;
-
-      case AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED://view的文字内容改变
-
-        break;
-
       case AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED:
-
         if (motionFastCopyCommentAction.action(BaseAction.Step2, statusUi, event)) {
           return;
         }
@@ -350,65 +337,6 @@ public class WeChatService extends AccessibilityService {
       return true;
     }
     return false;
-  }
-
-  /**
-   * 第二步 自动填写离线回复内容
-   */
-  private void autoOfflineFillOutReplyContent() {
-
-    final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditChat);
-    //微信应该做了防抖动处理 所以需要延迟后执行
-    int position = 0;
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickById(mService, IdButtonSend));
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-
-        PerformUtils.performAction(findViewClickByText(mService, "返回"));
-      }
-    }, delayTime * position);
-
-  }
-
-
-  private void setClipBoarDate(String date) {
-    mClipboardManager.setPrimaryClip(ClipData.newPlainText(null, date));
-  }
-
-  private String getClipBoardDate() {
-    if (mClipboardManager.hasPrimaryClip()) {
-      ClipData clipData = mClipboardManager.getPrimaryClip();
-      if (clipData != null && clipData.getItemCount() > 0) {
-        return clipData.getItemAt(0).coerceToText(mContext).toString();
-      } else {
-        Logger.e("not has clip date");
-        return null;
-      }
-    } else {
-      Logger.e("not has clip date");
-      return null;
-    }
   }
 
 

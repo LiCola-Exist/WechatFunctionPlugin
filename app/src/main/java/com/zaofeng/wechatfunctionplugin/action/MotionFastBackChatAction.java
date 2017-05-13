@@ -1,8 +1,7 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
 import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTexeViewBottomMain;
-import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.ChatUI;
+import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextViewBottomMain;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsUploadUI;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewListById;
@@ -36,12 +35,11 @@ public class MotionFastBackChatAction  extends BaseAction{
 
   private ClipboardManager mClipboardManager;
 
-
   public MotionFastBackChatAction(Context mContext,
       WindowView mWindowView,
-      AccessibilityService mService, boolean isOpen,ClipboardManager clipboardManager) {
+      AccessibilityService mService, boolean isOpen) {
     super(mContext, mWindowView, mService, isOpen);
-    this.mClipboardManager=clipboardManager;
+    mClipboardManager = (ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE);
   }
 
   @Override
@@ -78,7 +76,7 @@ public class MotionFastBackChatAction  extends BaseAction{
     handler.postDelayed(new Runnable() {
       @Override
       public void run() {
-        List<AccessibilityNodeInfo> listMain = findViewListById(mService, IdTexeViewBottomMain);
+        List<AccessibilityNodeInfo> listMain = findViewListById(mService, IdTextViewBottomMain);
         for (AccessibilityNodeInfo item : listMain) {
           if (item.getText().equals("微信")) {
             PerformUtils.performAction(forNodeInfoByClick(item));
