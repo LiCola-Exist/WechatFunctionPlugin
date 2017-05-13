@@ -1,9 +1,7 @@
 package com.zaofeng.wechatfunctionplugin;
 
-import static android.content.Intent.FLAG_ACTIVITY_NEW_TASK;
-
 import android.content.Context;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.support.annotation.IntDef;
 import android.view.Gravity;
@@ -11,11 +9,12 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -52,7 +51,12 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
     initWindowLayout();
     initTouchListener();
     initClickListener();
+    initViewDate();
     addView();
+  }
+
+  private void initViewDate() {
+    setOnChangeViewData(SPUtils.getSharedPreference(mContext));
   }
 
   private void initView() {
@@ -166,26 +170,31 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
     return viewRoot;
   }
 
-  public void setViewCheckList(boolean isRelease, boolean isBack, boolean isComment) {
-    if (checkRelease != null && checkBack != null && checkComment != null) {
-      checkRelease.setChecked(isRelease);
-      checkBack.setChecked(isBack);
-      checkComment.setChecked(isComment);
-    }
-  }
 
-  public void setOnViewRootClick(final OnClickListener onWindowViewClickListener) {
+  public void setOnViewMainClick(final OnClickListener onWindowViewClickListener) {
     viewRoot.setOnClickListener(onWindowViewClickListener);
   }
 
-  public void setOnViewRootLongClick(final OnLongClickListener longClick){
-    viewRoot.setOnLongClickListener(longClick);
-  }
 
   public void setOnWindowViewCheckChangeListener(
       OnWindowViewCheckChangeListener onWindowViewCheckChangeListener) {
     this.onWindowViewCheckChangeListener = onWindowViewCheckChangeListener;
   }
+
+  public void setOnChangeViewData(SharedPreferences sharedPreferences) {
+
+    boolean isRelease = sharedPreferences.getBoolean(Constant.Release_Copy, false);
+    boolean isBack = sharedPreferences.getBoolean(Constant.Release_Back, false);
+    boolean isComment = sharedPreferences.getBoolean(Constant.Comment_Copy, false);
+
+    if (checkRelease != null && checkBack != null && checkComment != null) {
+      checkRelease.setChecked(isRelease);
+      checkBack.setChecked(isBack);
+      checkComment.setChecked(isComment);
+    }
+
+  }
+
 
   @IntDef({IndexRelease, IndexBack, IndexComment})
   @Retention(RetentionPolicy.SOURCE)
@@ -198,5 +207,6 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
     void onChange(@Index int index, boolean isChecked);
   }
+
 
 }

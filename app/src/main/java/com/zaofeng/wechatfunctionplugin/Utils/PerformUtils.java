@@ -51,6 +51,7 @@ public class PerformUtils {
    */
   public static boolean containAction(AccessibilityNodeInfo info,
       AccessibilityNodeInfo.AccessibilityAction action) {
+    if (info==null)return false;
     List<AccessibilityNodeInfo.AccessibilityAction> listAction = info.getActionList();
     for (AccessibilityNodeInfo.AccessibilityAction item : listAction) {
       if (item.equals(action)) {

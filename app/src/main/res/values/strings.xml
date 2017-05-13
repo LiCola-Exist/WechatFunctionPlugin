@@ -4,26 +4,22 @@
 
     <string name="app_accessibility_service_description">朵朵微信功能插件服务</string>
     <string name="explain_release">功能说明：
-        \n1.聊天界面复制聊天内容后会自动跳转到朋友圈发布页
-        \n2.为自动回复生效请确保聊天界面为文字输入状态
+        \n1.快速发布：聊天界面复制内容后自动跳转到朋友圈发布页并粘贴内容到输入框
+        \n2.快速返回：发布成功后自动跳转到聊天列表主页并设置粘贴板内容
     </string>
     <string name="explain_quick">功能说明：
-        \n1.以上功能依赖通知栏，请确保打开通知设置
-        \n2.新增好友的自动回复功能依赖快捷接受新增好友请求
-        \n3.不在线自动回复手动设置，并确保微信不在聊天页
+        \n1.自动回复-打开后设置为离线状态会自动回复信息
+        \n2.建议开启所有微信群的消息免打扰，防止插件自动回复群新消息
     </string>
 
     <string name="explain_comment">功能说明：
-        \n1.快捷复制回复目前只支持朋友圈页和朋友圈详情页
-        \n2.自动回复目前只支持朋友圈详情页
-        \n3.请在自动回复朋友圈评论下方输入朵朵的名字
+        \n1.快捷处理：该功能目前只支持在朋友圈详情页
+        \n2.快捷评论：在朋友圈列表或详情页长按复制内容后自动处理，支持列表和详情
     </string>
-    <string name="txt_release_copy">快速发布聊天内容到朋友圈</string>
-    <string name="txt_release_reply">快速返回并复制内容到粘贴板页在朋友圈发布成功后</string>
-    <string name="txt_quick_accept">快捷接受新增好友请求</string>
-    <string name="txt_quick_reply">自动问候新增好友</string>
-    <string name="txt_quick_offline">自动回复当不在线时</string>
-    <string name="txt_comment_copy">快捷评论</string>
-    <string name="txt_comment_auto">自动回复</string>
+    <string name="txt_release_copy">快速发布-聊天内容到朋友圈</string>
+    <string name="txt_release_reply">快速返回-并设置粘贴板内容</string>
+    <string name="txt_quick_offline">自动回复-当不在线时</string>
+    <string name="txt_comment_auto">快捷处理-自动处理评论内容</string>
+    <string name="txt_comment_copy">快捷评论-复制后自动回复内容</string>
 
 </resources>

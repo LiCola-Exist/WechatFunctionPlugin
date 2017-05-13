@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import butterknife.BindView;
@@ -35,18 +34,6 @@ public class MainActivity extends AppCompatActivity {
   @BindView(R.id.img_release_back)
   ImageView imgReleaseBack;
 
-
-  @BindView(R.id.check_quick_accept)
-  CheckBox checkQuickAccept;
-  @BindView(R.id.layout_quick_accept)
-  LinearLayout layoutQuickAccept;
-
-  @BindView(R.id.check_quick_reply)
-  CheckBox checkQuickReply;
-  @BindView(R.id.txt_quick_reply_content)
-  TextView txtQuickReplyContent;
-  @BindView(R.id.img_quick_reply)
-  ImageView imgQuickReply;
 
   @BindView(R.id.check_quick_offline)
   CheckBox checkQuickOffline;
@@ -104,13 +91,10 @@ public class MainActivity extends AppCompatActivity {
           .addData(Constant.First, false)
           .addData(Constant.Release_Copy, true)
           .addData(Constant.Release_Back, true)
-          .addData(Constant.Quick_Accept, true)
-          .addData(Constant.Quick_Reply, true)
           .addData(Constant.Quick_Offline, false)
           .addData(Constant.Comment_Copy, true)
           .addData(Constant.Comment_Auto, true)
           .addData(Constant.Release_Reply_Content, "默认的回复文字")
-          .addData(Constant.Quick_Reply_Content, "默认的好友回复文字")
           .addData(Constant.Quick_Offline_Content, "默认的离线回复文字")
           .addData(Constant.Comment_Auto_Content, "朵朵的名字？")
           .build();
@@ -123,8 +107,6 @@ public class MainActivity extends AppCompatActivity {
     checkReleaseCopy.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Copy, false));
     checkReleaseBack.setChecked((boolean) SPUtils.get(mAppContext, Constant.Release_Back, false));
 
-    checkQuickAccept.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Accept, false));
-    checkQuickReply.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Reply, false));
     checkQuickOffline.setChecked((boolean) SPUtils.get(mAppContext, Constant.Quick_Offline, false));
 
     checkCommentCopy.setChecked((boolean) SPUtils.get(mAppContext, Constant.Comment_Copy, false));
@@ -133,8 +115,6 @@ public class MainActivity extends AppCompatActivity {
     txtReleaseBackContent
         .setText((String) SPUtils.get(mAppContext, Constant.Release_Reply_Content, Constant.Empty));
 
-    txtQuickReplyContent
-        .setText((String) SPUtils.get(mAppContext, Constant.Quick_Reply_Content, Constant.Empty));
     txtQuickOfflineContent
         .setText((String) SPUtils.get(mAppContext, Constant.Quick_Offline_Content, Constant.Empty));
 
@@ -158,17 +138,11 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
-  @OnCheckedChanged({R.id.check_quick_accept, R.id.check_quick_reply, R.id.check_quick_offline})
+  @OnCheckedChanged({R.id.check_quick_offline})
   public void onCheckedChangedQuick(CompoundButton button, boolean isChecked) {
 
     int id = button.getId();
     switch (id) {
-      case R.id.check_quick_accept:
-        SPUtils.putApply(mAppContext, Constant.Quick_Accept, isChecked);
-        break;
-      case R.id.check_quick_reply:
-        SPUtils.putApply(mAppContext, Constant.Quick_Reply, isChecked);
-        break;
       case R.id.check_quick_offline:
         SPUtils.putApply(mAppContext, Constant.Quick_Offline, isChecked);
         break;
@@ -189,16 +163,13 @@ public class MainActivity extends AppCompatActivity {
   }
 
 
-  @OnClick({R.id.img_release_back, R.id.img_quick_reply, R.id.img_quick_offline,
+  @OnClick({R.id.img_release_back, R.id.img_quick_offline,
       R.id.img_comment_auto})
   public void onEditClick(View view) {
     String content = null;
     switch (view.getId()) {
       case R.id.img_release_back:
         content = txtReleaseBackContent.getText().toString();
-        break;
-      case R.id.img_quick_reply:
-        content = txtQuickReplyContent.getText().toString();
         break;
       case R.id.img_quick_offline:
         content = txtQuickOfflineContent.getText().toString();
@@ -244,18 +215,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onDate(String input) {
-        if (view == null) {
-            return;
-        }
+      if (view == null) {
+        return;
+      }
       int id = view.getId();
       switch (id) {
         case R.id.img_release_back:
           txtReleaseBackContent.setText(input);
           SPUtils.putApply(mAppContext, Constant.Release_Reply_Content, input);
-          break;
-        case R.id.img_quick_reply:
-          txtQuickReplyContent.setText(input);
-          SPUtils.putApply(mAppContext, Constant.Quick_Reply_Content, input);
           break;
         case R.id.img_quick_offline:
           txtQuickOfflineContent.setText(input);

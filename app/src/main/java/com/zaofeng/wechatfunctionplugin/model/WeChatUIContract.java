@@ -23,7 +23,7 @@ public interface WeChatUIContract {
   @IntDef({Unknown, LauncherUI, ChatUI, SnsTimeLineUI, SnsUploadUI, SnsCommentDetailUI,
       AlbumPreviewUI, FMessageConversationUI, ContactInfoUI})
   @Retention(RetentionPolicy.SOURCE)
-  public @interface StateUI {
+  @interface StatusUI {
 
   }
 

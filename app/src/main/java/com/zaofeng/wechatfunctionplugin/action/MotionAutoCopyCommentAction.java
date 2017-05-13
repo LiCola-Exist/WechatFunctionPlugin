@@ -8,6 +8,7 @@ import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListVi
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextTimeLineAuthor;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextViewTimeLineDetailItemContent;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextViewTimeLineDetailItemName;
+import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsCommentDetailUI;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewById;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewListById;
@@ -15,12 +16,14 @@ import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findView
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.os.Bundle;
+import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
 import com.zaofeng.wechatfunctionplugin.model.ConstantData;
+import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
 import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
@@ -33,44 +36,35 @@ import java.util.List;
 /**
  * Created by 李可乐 on 2017/5/12.
  * 行为触发
- * 朋友圈评论复制回复 目前只支持朋友圈详情
+ * 朋友圈评论自动复制回复 目前只支持朋友圈详情
  */
 
-public class MotionCopyCommentAction {
-
-  Context mContext;
-  WindowView mWindowView;
-  AccessibilityService mService;
-  boolean isOpen;
+public class MotionAutoCopyCommentAction extends BaseAction{
 
   boolean isWork = false;
 
-  public MotionCopyCommentAction(
-      Context mContext,
-      WindowView mWindowView,
-      AccessibilityService mService,
-      boolean isOpen
-  ) {
-    this.mContext = mContext;
-    this.mWindowView = mWindowView;
-    this.mService = mService;
-    this.isOpen = isOpen;
+  public MotionAutoCopyCommentAction(Context mContext, WindowView mWindowView,
+      AccessibilityService mService, boolean isOpen) {
+    super(mContext, mWindowView, mService, isOpen);
   }
 
-  public void setOpen(boolean open) {
-    isOpen = open;
-  }
-
-  public void action() {
+  @Override
+  public boolean action(@Step int step, @StatusUI int statusUi, AccessibilityEvent event) {
 
     if (!isOpen) {
-      Toast.makeText(mContext, "请开启自动回复", Toast.LENGTH_SHORT).show();
-      return;
+      shouToast("请开启自动回复");
+      isWork=false;
+      return false;
+    }
+
+    if (statusUi != SnsCommentDetailUI){
+      shouToast("该功能只在朋友圈详情页生效");
+      return false;
     }
 
     if (isWork) {
-      Toast.makeText(mContext, ConstantData.Working, Toast.LENGTH_SHORT).show();
-      return;
+      shouToast(ConstantData.Working);
+      return false;
     }
     isWork = true;
 
@@ -81,17 +75,17 @@ public class MotionCopyCommentAction {
     AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
     if (infoTargetName == null) {
       mWindowView.setMainTitle(ConstantData.WorkClickable);
-      Toast.makeText(mContext, "请滚动到顶部显示该条朋友圈作者", Toast.LENGTH_SHORT).show();
+      shouToast("请滚动到顶部显示该条朋友圈作者");
       isWork = false;
-      return;
+      return false;
     }
 
     String authorName = infoTargetName.getText().toString();
     if (!authorName.equals(setAuthorName)) {
       mWindowView.setMainTitle(ConstantData.WorkClickable);
-      Toast.makeText(mContext, "该条朋友圈作者与插件中输入的名字不符", Toast.LENGTH_SHORT).show();
+      shouToast("该条朋友圈作者与插件中输入的名字不符");
       isWork = false;
-      return;
+      return false;
     }
 
     LinkedHashSet<CommentDateModel> setDate = new LinkedHashSet<>();
@@ -104,10 +98,10 @@ public class MotionCopyCommentAction {
     ArrayList<String> result = RelationUtils.getMapRelationResult(targetList, coverList);
 
     if (result.isEmpty()) {
-      Toast.makeText(mContext, "没有需要处理的内容", Toast.LENGTH_SHORT).show();
+      shouToast("没有需要处理的内容");
       mWindowView.setMainTitle(ConstantData.WorkClickable);
       isWork = false;
-      return;
+      return false;
     }
 
     final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
@@ -137,7 +131,12 @@ public class MotionCopyCommentAction {
 
     mWindowView.setMainTitle(ConstantData.WorkClickable);
     isWork = false;
+
+    return true;
   }
+
+
+
 
   /**
    * 获取评论列表 的关键数据 包含去重操作（set集合实现）和自动滚动 递归调用方法
