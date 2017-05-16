@@ -24,6 +24,8 @@ import java.util.List;
 
 /**
  * Created by 李可乐 on 2017/5/13.
+ * 行为触发
+ * 发布朋友圈成功后快速返回并设置粘贴板内容
  */
 
 public class MotionFastBackChatAction  extends BaseAction{
@@ -73,18 +75,15 @@ public class MotionFastBackChatAction  extends BaseAction{
   private void autoBackChat() {
     PerformUtils.performAction(findViewClickByText(mService, "返回"));
 
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        List<AccessibilityNodeInfo> listMain = findViewListById(mService, IdTextViewBottomMain);
-        for (AccessibilityNodeInfo item : listMain) {
-          if (item.getText().equals("微信")) {
-            PerformUtils.performAction(forNodeInfoByClick(item));
-            String data= (String) SPUtils.get(mContext, Constant.Release_Reply_Content,"");
-            mClipboardManager.setPrimaryClip(ClipData.newPlainText(null,data));
-            shouToast("已经把回复文字复制到粘贴板");
-            return;
-          }
+    handler.postDelayed(() -> {
+      List<AccessibilityNodeInfo> listMain = findViewListById(mService, IdTextViewBottomMain);
+      for (AccessibilityNodeInfo item : listMain) {
+        if (item.getText().equals("微信")) {
+          PerformUtils.performAction(forNodeInfoByClick(item));
+          String data= (String) SPUtils.get(mContext, Constant.Release_Reply_Content,"");
+          mClipboardManager.setPrimaryClip(ClipData.newPlainText(null,data));
+          showToast("已经把回复文字复制到粘贴板");
+          return;
         }
       }
     }, delayTime);

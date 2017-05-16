@@ -1,6 +1,5 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditTimeLineUpload;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.AlbumPreviewUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.ChatUI;
@@ -21,6 +20,8 @@ import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
 
 /**
  * Created by 李可乐 on 2017/5/13.
+ * 行为触发
+ * 聊天内容快速发布朋友圈
  */
 
 public class MotionFastReleaseLineAction extends BaseAction {
@@ -90,15 +91,11 @@ public class MotionFastReleaseLineAction extends BaseAction {
    */
   private void autoToUploadTimeLine() {
 
-    PerformUtils.performAction(findViewClickByText(mService, "返回"));
-    PerformUtils.performAction(findViewClickByText(mService, "发现"));
-    //微信应该做了防抖动处理 所以需要延迟后执行
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickByText(mService, "朋友圈"));
-      }
-    }, delayTime);
+    performActionDelayed(
+        () -> PerformUtils.performAction(findViewClickByText(mService, "返回")),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "发现")),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "朋友圈"))
+    );
   }
 
   /**
@@ -106,14 +103,11 @@ public class MotionFastReleaseLineAction extends BaseAction {
    */
   private void autoToUploadToChooseTimeLine() {
 
-    PerformUtils.performAction(findViewClickByText(mService, "更多功能按钮"));
+    performActionDelayed(
+        () -> PerformUtils.performAction(findViewClickByText(mService, "更多功能按钮")),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "从相册选择"))
+    );
 
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickByText(mService, "从相册选择"));
-      }
-    }, delayTime);
   }
 
 
@@ -128,13 +122,7 @@ public class MotionFastReleaseLineAction extends BaseAction {
    * 第四步 填写粘贴板的内容到输入框 并结束
    */
   private void autoUploadFillOutTimeLine() {
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewById(mService, IdEditTimeLineUpload),
-            AccessibilityNodeInfo.ACTION_PASTE);
-      }
-    }, delayTime);
-
+    performAction(() -> PerformUtils.performAction(findViewById(mService, IdEditTimeLineUpload),
+        AccessibilityNodeInfo.ACTION_PASTE));
   }
 }

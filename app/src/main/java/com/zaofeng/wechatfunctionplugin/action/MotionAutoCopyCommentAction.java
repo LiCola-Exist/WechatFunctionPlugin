@@ -1,8 +1,8 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
 import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditTimeLineComment;
+import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdLayoutCommentLastItem;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdLayoutTimeLineDetailListItem;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListViewTimeLineCommentDetail;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextTimeLineAuthor;
@@ -12,23 +12,25 @@ import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsComment
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewById;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewListById;
+import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.hasViewById;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
-import android.widget.Toast;
 import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
 import com.zaofeng.wechatfunctionplugin.model.ConstantData;
+import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
 import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
 import com.zaofeng.wechatfunctionplugin.utils.RelationUtils;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
+import com.zaofeng.wechatfunctionplugin.utils.ThreadUtils;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -36,10 +38,10 @@ import java.util.List;
 /**
  * Created by 李可乐 on 2017/5/12.
  * 行为触发
- * 朋友圈评论自动复制回复 目前只支持朋友圈详情
+ * 朋友圈评论自动复制回复
  */
 
-public class MotionAutoCopyCommentAction extends BaseAction{
+public class MotionAutoCopyCommentAction extends BaseAction {
 
   boolean isWork = false;
 
@@ -52,22 +54,25 @@ public class MotionAutoCopyCommentAction extends BaseAction{
   public boolean action(@Step int step, @StatusUI int statusUi, AccessibilityEvent event) {
 
     if (!isOpen) {
-      shouToast("请开启自动回复");
-      isWork=false;
-      return false;
-    }
-
-    if (statusUi != SnsCommentDetailUI){
-      shouToast("该功能只在朋友圈详情页生效");
+      showToast("请开启自动回复");
       return false;
     }
 
     if (isWork) {
-      shouToast(ConstantData.Working);
+      showToast(ConstantData.Working);
       return false;
     }
-    isWork = true;
 
+    if (statusUi == SnsCommentDetailUI) {
+      return detailCommentHandler();
+    } else {
+      showToast("该功能只在朋友圈详情页生效");
+      return false;
+    }
+
+  }
+
+  private boolean detailCommentHandler() {
     String setAuthorName = (String) SPUtils
         .get(mContext, Constant.Comment_Auto_Content, Constant.Empty);
     mWindowView.setMainTitle(ConstantData.WorkBegin);
@@ -75,7 +80,7 @@ public class MotionAutoCopyCommentAction extends BaseAction{
     AccessibilityNodeInfo infoTargetName = findViewById(mService, IdTextTimeLineAuthor);
     if (infoTargetName == null) {
       mWindowView.setMainTitle(ConstantData.WorkClickable);
-      shouToast("请滚动到顶部显示该条朋友圈作者");
+      showToast("请滚动到顶部显示该条朋友圈作者");
       isWork = false;
       return false;
     }
@@ -83,13 +88,13 @@ public class MotionAutoCopyCommentAction extends BaseAction{
     String authorName = infoTargetName.getText().toString();
     if (!authorName.equals(setAuthorName)) {
       mWindowView.setMainTitle(ConstantData.WorkClickable);
-      shouToast("该条朋友圈作者与插件中输入的名字不符");
+      showToast("该条朋友圈作者与插件中输入的名字不符");
       isWork = false;
       return false;
     }
 
     LinkedHashSet<CommentDateModel> setDate = new LinkedHashSet<>();
-    getCommentListViewItemInfo(setDate);
+    getCommentListViewItemInfo(setDate);//递归到底
 
     ArrayList<CommentRelationModel> targetList = new ArrayList<>();
     ArrayList<CommentRelationModel> coverList = new ArrayList<>();
@@ -98,7 +103,7 @@ public class MotionAutoCopyCommentAction extends BaseAction{
     ArrayList<String> result = RelationUtils.getMapRelationResult(targetList, coverList);
 
     if (result.isEmpty()) {
-      shouToast("没有需要处理的内容");
+      showToast("没有需要处理的内容");
       mWindowView.setMainTitle(ConstantData.WorkClickable);
       isWork = false;
       return false;
@@ -106,36 +111,28 @@ public class MotionAutoCopyCommentAction extends BaseAction{
 
     final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
 
-    try {
-      //清除输入框带有的回复
-      PerformUtils.performAction(nodeInfo);
-      Thread.sleep(delayTime);
-      mService.performGlobalAction(GLOBAL_ACTION_BACK);
-      Thread.sleep(delayTime);
+    //清除输入框带有的回复
+    PerformUtils.performAction(nodeInfo);
+    ThreadUtils.sleepSecure();
+    mService.performGlobalAction(GLOBAL_ACTION_BACK);
+    ThreadUtils.sleepSecure();
 
-      //遍历自动发送
-      for (String item : result) {
-        Logger.d("comment item=" + item);
-        Bundle arguments = new Bundle();
-        arguments
-            .putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
-        Thread.sleep(delayTime);
-        PerformUtils.performAction(findViewClickByText(mService, "发送"));
-        Thread.sleep(delayTime);
-      }
-
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    //遍历自动发送
+    for (String item : result) {
+      Bundle arguments = new Bundle();
+      arguments
+          .putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, item);
+      PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_SET_TEXT, arguments);
+      ThreadUtils.sleepSecure();
+      PerformUtils.performAction(findViewClickByText(mService, "发送"));
+      ThreadUtils.sleepSecure();
     }
-
+    showToast("处理完成");
     mWindowView.setMainTitle(ConstantData.WorkClickable);
     isWork = false;
 
     return true;
   }
-
-
 
 
   /**
@@ -149,35 +146,31 @@ public class MotionAutoCopyCommentAction extends BaseAction{
 
     List<AccessibilityNodeInfo> infoList = findViewListById(mService,
         IdLayoutTimeLineDetailListItem);
-
-    CommentDateModel itemModel;
-    int index;
-    String title;
-    String content;
-
+    if (infoList == null || infoList.isEmpty()) {
+      return setDate;
+    }
     for (AccessibilityNodeInfo itemInfo : infoList) {
       //获取索引 兼容处理 行索引有效还是列索引有效问题 即判定是否大于有效起始值
-      index = itemInfo.getCollectionItemInfo().getRowIndex() > indexValidStart ? itemInfo
+      if (itemInfo == null || itemInfo.getCollectionItemInfo() == null) {
+        continue;
+      }
+      int index = itemInfo.getCollectionItemInfo().getRowIndex() > indexValidStart ? itemInfo
           .getCollectionItemInfo().getRowIndex()
           : itemInfo.getCollectionItemInfo().getColumnIndex();
 
-
-      title = findViewById(itemInfo, IdTextViewTimeLineDetailItemName).getText().toString().trim();
-      content = findViewById(itemInfo, IdTextViewTimeLineDetailItemContent).getText().toString()
+      String title = findViewById(itemInfo, IdTextViewTimeLineDetailItemName).getText().toString()
           .trim();
-      itemModel = new CommentDateModel(index, title, content);
+      String content = findViewById(itemInfo, IdTextViewTimeLineDetailItemContent).getText()
+          .toString()
+          .trim();
+      CommentDateModel itemModel = new CommentDateModel(index, title, content);
       setDate.add(itemModel);
-
     }
 
     AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
     if (!PerformUtils.checkScrollViewBottom(info)) {
       PerformUtils.performAction(info, AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-      try {
-        Thread.sleep(delayTime);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
+      ThreadUtils.sleepSecure();
       return getCommentListViewItemInfo(setDate);
     } else {
       Logger.d("已经到底了");

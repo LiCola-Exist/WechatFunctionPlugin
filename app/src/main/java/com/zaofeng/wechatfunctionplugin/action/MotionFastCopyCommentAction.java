@@ -52,7 +52,7 @@ public class MotionFastCopyCommentAction extends BaseAction {
     }
 
     if (!isOpen) {
-//      shouToast("请开启朋友圈复制快捷回复功能");
+//      showToast("请开启朋友圈复制快捷回复功能");
       return false;
     }
 
@@ -120,34 +120,12 @@ public class MotionFastCopyCommentAction extends BaseAction {
     final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
 
     //微信应该做了防抖动处理 所以需要延迟后执行
-    int position = 0;
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        mService.performGlobalAction(GLOBAL_ACTION_BACK);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickByText(mService, "发送"));
-      }
-    }, delayTime * position);
+    performActionDelayed(
+        () -> PerformUtils.performAction(nodeInfo),
+        () -> mService.performGlobalAction(GLOBAL_ACTION_BACK),
+        () -> PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "发送"))
+    );
   }
 
 
@@ -189,26 +167,10 @@ public class MotionFastCopyCommentAction extends BaseAction {
 
     final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditTimeLineComment);
     //微信应该做了防抖动处理 所以需要延迟后执行
-    int position = 0;
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickByText(mService, "发送"));
-      }
-    }, delayTime * position);
+    performActionDelayed(
+        () -> PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS),
+        () -> PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "发送"))
+    );
   }
 }

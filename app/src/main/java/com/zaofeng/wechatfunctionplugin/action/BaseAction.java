@@ -1,5 +1,7 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
+import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
+
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.os.Handler;
@@ -11,6 +13,7 @@ import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.Arrays;
 
 /**
  * Created by 李可乐 on 2017/5/13.
@@ -45,17 +48,33 @@ public abstract class BaseAction {
     this.isOpen = isOpen;
   }
 
+
   public abstract boolean action(@Step int step, @StatusUI int statusUi, AccessibilityEvent event);
 
   public void setOpen(boolean open) {
     isOpen = open;
   }
 
-  protected void shouToast(CharSequence charSequence) {
+  protected void showToast(CharSequence charSequence) {
     Toast.makeText(mContext, charSequence, Toast.LENGTH_SHORT).show();
   }
 
-  protected void shouToast(@StringRes int resId) {
+  protected void showToast(@StringRes int resId) {
     Toast.makeText(mContext, resId, Toast.LENGTH_SHORT).show();
+  }
+
+  protected void performActionDelayed(Runnable... runnables) {
+    int position = 0;
+    for (Runnable runnable :
+        runnables) {
+      handler.postDelayed(runnable, delayTime * position++);
+    }
+  }
+
+  protected void performAction(Runnable... runnables) {
+    for (Runnable runnable :
+        runnables) {
+      handler.post(runnable);
+    }
   }
 }

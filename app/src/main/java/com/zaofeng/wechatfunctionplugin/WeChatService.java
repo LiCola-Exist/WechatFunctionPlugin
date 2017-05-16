@@ -7,6 +7,7 @@ import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassLau
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsCommentDetailUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsTimeLineUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsTimeLineUploadUI;
+import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassSnsTimeMsgUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdButtonVoiceChat;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListViewChat;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.AlbumPreviewUI;
@@ -14,6 +15,7 @@ import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.ChatUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.ContactInfoUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.FMessageConversationUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsCommentDetailUI;
+import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsTimeLineMsgUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsTimeLineUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsUploadUI;
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.Unknown;
@@ -21,12 +23,9 @@ import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.hasViewB
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.view.KeyEvent;
 import android.view.View;
@@ -201,7 +200,6 @@ public class WeChatService extends AccessibilityService {
   }
 
 
-
   @NonNull
   private AccessibilityServiceInfo initServiceInfo() {
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
@@ -222,7 +220,6 @@ public class WeChatService extends AccessibilityService {
 
   /**
    * 接收Accessibility事件方法
-   * @param event
    */
   @Override
   public void onAccessibilityEvent(AccessibilityEvent event) {
@@ -236,7 +233,7 @@ public class WeChatService extends AccessibilityService {
           case ClassLauncherUI:
             Logger.d("正在主页或聊天页");
             statusUi = ChatUI;
-            eventAutoReplyAction.action(BaseAction.Step1,statusUi,event);
+            eventAutoReplyAction.action(BaseAction.Step1, statusUi, event);
             break;
           case ClassAlbumPreviewUI:
             Logger.d("正在相册选择页");
@@ -274,6 +271,10 @@ public class WeChatService extends AccessibilityService {
             Logger.d("正在好友详细资料页");
             statusUi = ContactInfoUI;
             break;
+          case ClassSnsTimeMsgUI:
+            Logger.d("正在朋友圈新消息页");
+            statusUi=SnsTimeLineMsgUI;
+            break;
         }
         break;
 
@@ -302,7 +303,7 @@ public class WeChatService extends AccessibilityService {
             return;
           }
         } else if ((className.equals("android.app.Notification") && (!text.isEmpty()))) {
-          eventAutoReplyAction.action(BaseAction.Step0,statusUi,event);
+          eventAutoReplyAction.action(BaseAction.Step0, statusUi, event);
         }
 
         break;

@@ -1,6 +1,5 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditChat;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListViewChatItemContent;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextChatItemContent;
@@ -29,6 +28,8 @@ import java.util.List;
 
 /**
  * Created by 李可乐 on 2017/5/12.
+ * 事件触发
+ * 自动回复
  */
 
 public class EventAutoReplyAction extends BaseAction {
@@ -92,7 +93,7 @@ public class EventAutoReplyAction extends BaseAction {
     for (AccessibilityNodeInfo itemInfo :
         infoList) {
       if (data.equals(itemInfo.getText().toString())) {
-        shouToast("已经回复过");
+        showToast("已经回复过");
         mService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
         return;
       }
@@ -101,35 +102,12 @@ public class EventAutoReplyAction extends BaseAction {
     mClipboardManager.setPrimaryClip(ClipData.newPlainText(null, data));
 
     final AccessibilityNodeInfo nodeInfo = findViewById(mService, IdEditChat);
-    //微信应该做了防抖动处理 所以需要延迟后执行
-    int position = 0;
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE);
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        PerformUtils.performAction(findViewClickByText(mService, "发送"));
-      }
-    }, delayTime * position++);
-
-    handler.postDelayed(new Runnable() {
-      @Override
-      public void run() {
-        mService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
-      }
-    }, delayTime * position);
+    performActionDelayed(
+        () -> PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_FOCUS),
+        () -> PerformUtils.performAction(nodeInfo, AccessibilityNodeInfo.ACTION_PASTE),
+        () -> PerformUtils.performAction(findViewClickByText(mService, "发送")),
+        () -> mService.performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME)
+    );
 
   }
 
