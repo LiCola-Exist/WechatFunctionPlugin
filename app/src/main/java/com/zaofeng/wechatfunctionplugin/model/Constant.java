@@ -1,4 +1,4 @@
-package com.zaofeng.wechatfunctionplugin.utils;
+package com.zaofeng.wechatfunctionplugin.model;
 
 /**
  * Created by 李可乐 on 2017/2/6 0006.

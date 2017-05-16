@@ -17,7 +17,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
-import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.SPBuild;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.util.Locale;

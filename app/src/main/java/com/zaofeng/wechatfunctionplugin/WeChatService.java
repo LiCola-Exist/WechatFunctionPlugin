@@ -37,8 +37,8 @@ import com.zaofeng.wechatfunctionplugin.action.MotionAutoCopyCommentAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionFastBackChatAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionFastCopyCommentAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionFastReleaseLineAction;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.utils.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 
@@ -273,7 +273,7 @@ public class WeChatService extends AccessibilityService {
             break;
           case ClassSnsTimeMsgUI:
             Logger.d("正在朋友圈新消息页");
-            statusUi=SnsTimeLineMsgUI;
+            statusUi = SnsTimeLineMsgUI;
             break;
         }
         break;

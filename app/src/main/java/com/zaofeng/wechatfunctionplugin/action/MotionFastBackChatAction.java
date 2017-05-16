@@ -15,7 +15,7 @@ import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.LoggerHelp;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;

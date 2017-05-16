@@ -2,7 +2,6 @@ package com.zaofeng.wechatfunctionplugin.action;
 
 import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditTimeLineComment;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdLayoutCommentLastItem;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdLayoutTimeLineDetailListItem;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdListViewTimeLineCommentDetail;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdTextTimeLineAuthor;
@@ -23,9 +22,8 @@ import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
 import com.zaofeng.wechatfunctionplugin.model.ConstantData;
-import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
 import com.zaofeng.wechatfunctionplugin.utils.RelationUtils;

@@ -13,7 +13,7 @@ import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
-import com.zaofeng.wechatfunctionplugin.utils.Constant;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
