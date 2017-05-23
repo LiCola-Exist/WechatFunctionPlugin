@@ -55,6 +55,10 @@ public class EventAutoReplyAction extends BaseAction {
   public boolean action(@Step int step, @StatusUI int statusUi, AccessibilityEvent event) {
     Logger.d("被调用:" + step + " 页面信息：" + LoggerHelp.getDesc(statusUi));
 
+    if(true){
+      return false;
+    }
+
     if (!isOpen) {
       return false;
     }

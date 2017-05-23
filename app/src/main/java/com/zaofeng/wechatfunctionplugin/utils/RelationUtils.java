@@ -12,29 +12,38 @@ import java.util.Set;
 
 public class RelationUtils {
 
-  public static void getRelationDates(Set<CommentDateModel> setDate, String authorName,
+  public static final String TargetComment = "回复";
+  public static final String TargetSemicolon = ":";
+
+  /**
+   *
+   * @param originalSet
+   * @param authorName
+   * @param targetList
+   * @param coverList
+   */
+  public static void getCommentDatesByRule(Set<CommentDateModel> originalSet, String authorName,
       ArrayList<CommentRelationModel> targetList, ArrayList<CommentRelationModel> coverList) {
 
-    Integer itemIndex;
-    String itemTitle;
-    String itemContent;
-    Iterator<CommentDateModel> infoIterator = setDate.iterator();
-    CommentDateModel infoFor;
+    Iterator<CommentDateModel> infoIterator = originalSet.iterator();
     while (infoIterator.hasNext()) {
-      infoFor = infoIterator.next();
-      itemIndex = infoFor.getIndex();
-      itemTitle = infoFor.getTitle();
-      itemContent = infoFor.getContent();
+      CommentDateModel infoFor = infoIterator.next();
+      Integer itemIndex = infoFor.getIndex();
+      String itemTitle = infoFor.getTitle();
+      String itemContent = infoFor.getContent();
 
-      if (itemTitle.contains("回复")) {
-        int result = itemTitle.indexOf(authorName);
+      if ((itemContent.contains(TargetComment)) && (itemContent.contains(TargetSemicolon))) {
+        //嵌套回复
+        int result = itemContent.indexOf(authorName);
         if (result != -1 && result != 0) {
           //回复评论 回复中有朵朵 并且不为首位 即同学回复朵朵的title 存入目标集合
-          targetList.add(new CommentRelationModel(itemIndex, itemContent));
+          String offsetContent = itemContent.substring(itemContent.indexOf(TargetSemicolon) + 1);
+          targetList.add(new CommentRelationModel(itemIndex, offsetContent));
         }
       } else {
+        //普通回复
         if (itemTitle.equals(authorName)) {
-          //朵朵的发布的评论
+          //朵朵 发布的评论
           coverList.add(new CommentRelationModel(itemIndex, itemContent));
         } else {
           //评论 且不是朵朵发布的 即同学的评论
@@ -45,6 +54,11 @@ public class RelationUtils {
 
   }
 
+  /**
+   * @param targetList 目标评论集合
+   * @param coverList 已经存在的评论集合
+   * @return 还没有被映射的评论内容集合
+   */
   public static ArrayList<String> getMapRelationResult(ArrayList<CommentRelationModel> targetList,
       ArrayList<CommentRelationModel> coverList) {
     ArrayList<String> resultList = new ArrayList<>();

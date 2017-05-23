@@ -6,7 +6,7 @@ package com.zaofeng.wechatfunctionplugin.model;
 
 public interface ConstantData {
 
-  long delayTime = 800;//为兼容微信的防抖动处理 的点击延迟时间
+  long delayTime = 600;//为兼容微信的防抖动处理 的点击延迟时间
 
   String Working="正在处理任务,请稍后";
 

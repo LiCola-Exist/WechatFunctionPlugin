@@ -11,7 +11,6 @@ import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsComment
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewById;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewListById;
-import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.hasViewById;
 
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
@@ -21,9 +20,9 @@ import android.view.accessibility.AccessibilityNodeInfo;
 import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.CommentDateModel;
 import com.zaofeng.wechatfunctionplugin.model.CommentRelationModel;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.model.ConstantData;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
 import com.zaofeng.wechatfunctionplugin.utils.RelationUtils;
@@ -91,13 +90,14 @@ public class MotionAutoCopyCommentAction extends BaseAction {
       return false;
     }
 
-    LinkedHashSet<CommentDateModel> setDate = new LinkedHashSet<>();
-    getCommentListViewItemInfo(setDate);//递归到底
+    LinkedHashSet<CommentDateModel> originalSet = new LinkedHashSet<>();//原始评论数据
+    getCommentListViewItemInfo(originalSet);//递归到底
 
-    ArrayList<CommentRelationModel> targetList = new ArrayList<>();
-    ArrayList<CommentRelationModel> coverList = new ArrayList<>();
-
-    RelationUtils.getRelationDates(setDate, authorName, targetList, coverList);
+    ArrayList<CommentRelationModel> targetList = new ArrayList<>();//目标集合
+    ArrayList<CommentRelationModel> coverList = new ArrayList<>();//已经存在的评论集合
+    //按规则加工 得到两个数据集合
+    RelationUtils.getCommentDatesByRule(originalSet, authorName, targetList, coverList);
+    //得到待处理数据
     ArrayList<String> result = RelationUtils.getMapRelationResult(targetList, coverList);
 
     if (result.isEmpty()) {
@@ -140,13 +140,34 @@ public class MotionAutoCopyCommentAction extends BaseAction {
    */
   private LinkedHashSet<CommentDateModel> getCommentListViewItemInfo(
       LinkedHashSet<CommentDateModel> setDate) {
-    final int indexValidStart = 0;/*评论Layout在父容器中的有效起始 索引值 因为评论列表索引肯定大于0*/
 
-    List<AccessibilityNodeInfo> infoList = findViewListById(mService,
-        IdLayoutTimeLineDetailListItem);
-    if (infoList == null || infoList.isEmpty()) {
+    addCommentData(setDate, findViewListById(mService, IdLayoutTimeLineDetailListItem));
+
+    AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
+    if (!PerformUtils.checkScrollViewBottom(info)) {
+      PerformUtils.performAction(info, AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
+      ThreadUtils.sleepSecure();
+      return getCommentListViewItemInfo(setDate);
+    } else {
+      Logger.d("已经到底了");
       return setDate;
     }
+
+  }
+
+  /**
+   * 根据传入Node节点 添加到评论集合中
+   * @param setDate
+   * @param infoList
+   */
+  private void addCommentData(LinkedHashSet<CommentDateModel> setDate,
+      List<AccessibilityNodeInfo> infoList) {
+    final int indexValidStart = 0;/*评论Layout在父容器中的有效起始 索引值 因为评论列表索引肯定大于0*/
+
+    if (infoList == null || infoList.isEmpty()) {
+      return;
+    }
+
     for (AccessibilityNodeInfo itemInfo : infoList) {
       //获取索引 兼容处理 行索引有效还是列索引有效问题 即判定是否大于有效起始值
       if (itemInfo == null || itemInfo.getCollectionItemInfo() == null) {
@@ -164,17 +185,6 @@ public class MotionAutoCopyCommentAction extends BaseAction {
       CommentDateModel itemModel = new CommentDateModel(index, title, content);
       setDate.add(itemModel);
     }
-
-    AccessibilityNodeInfo info = findViewById(mService, IdListViewTimeLineCommentDetail);
-    if (!PerformUtils.checkScrollViewBottom(info)) {
-      PerformUtils.performAction(info, AccessibilityNodeInfo.ACTION_SCROLL_FORWARD);
-      ThreadUtils.sleepSecure();
-      return getCommentListViewItemInfo(setDate);
-    } else {
-      Logger.d("已经到底了");
-      return setDate;
-    }
-
   }
 
 }
