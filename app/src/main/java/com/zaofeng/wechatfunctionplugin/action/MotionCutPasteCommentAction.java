@@ -75,7 +75,11 @@ public class MotionCutPasteCommentAction extends BaseAction{
         return true;
       }
     }else if (step==Step1){
-      return handlePasteComment(contentPaste);
+      if (handlePasteComment(contentPaste)){
+        showToast("处理完成,剪贴板清空");
+        contentPaste=null;
+        return true;
+      }
     }
 
     return false;
@@ -85,11 +89,11 @@ public class MotionCutPasteCommentAction extends BaseAction{
 
     if (CheckUtils.isEmpty(contentPaste)){
       showToast("没有剪贴的内容");
+      return false;
     }
 
     NodeInfoHelper.handlePasteAction(mService,contentPaste);
-    showToast("处理完成");
-    return false;
+    return true;
   }
 
   private List<String> handleCutComment(String authorName) {

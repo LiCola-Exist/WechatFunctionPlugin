@@ -14,6 +14,7 @@ import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import com.zaofeng.wechatfunctionplugin.model.Constant;
 import com.zaofeng.wechatfunctionplugin.utils.Logger;
@@ -35,7 +36,7 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
   private WindowManager.LayoutParams mWLayoutParams;
   private View viewRoot;
 
-  private TextView txtActionMain;
+  private ImageButton txtActionMain;
   private CheckBox checkMenu;
   private View layoutMenu;
   private TextView txtPaste;
@@ -96,7 +97,7 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
   private void initView() {
     viewRoot = LayoutInflater.from(mContext).inflate(R.layout.layout_window, null);
-    txtActionMain = (TextView) viewRoot.findViewById(R.id.txt_window_action_main);
+    txtActionMain = (ImageButton) viewRoot.findViewById(R.id.txt_window_action_main);
     checkMenu = (CheckBox) viewRoot.findViewById(R.id.check_window_menu);
     layoutMenu = viewRoot.findViewById(R.id.layout_window_more);
 

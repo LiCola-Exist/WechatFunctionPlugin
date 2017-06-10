@@ -9,20 +9,23 @@
     tools:layout_margin="16dp"
     android:padding="4dp">
 
-  <TextView
+  <ImageButton
+      android:padding="4dp"
       android:background="?android:attr/selectableItemBackground"
+      android:src="@drawable/ic_content_copy_48dp"
       android:id="@+id/txt_window_action_main"
       android:gravity="center"
       style="@style/text_window"
-      android:layout_width="wrap_content"
+      android:scaleType="center"
+      android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:drawableTop="@drawable/ic_content_copy_48dp"
-      android:text="复制剪贴" />
+      />
 
   <CheckBox
       android:id="@+id/check_window_menu"
       style="@style/text_arrow_check_window"
-      android:layout_width="wrap_content"
+      android:layout_width="match_parent"
+      android:gravity="center"
       android:layout_height="wrap_content"
       android:checked="false"
       android:text="打开更多" />
