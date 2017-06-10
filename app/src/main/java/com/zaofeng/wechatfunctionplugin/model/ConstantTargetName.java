@@ -6,11 +6,11 @@ package com.zaofeng.wechatfunctionplugin.model;
 
 public interface ConstantTargetName {
 
-  String IdListViewTimeLineCommentDetail = "com.tencent.mm:id/ckv";//朋友圈详情页 ListView
-  String IdLayoutTimeLineDetailListItem = "com.tencent.mm:id/clk";//朋友圈评论详情页 ListView的itemLayout
-  String IdTextViewTimeLineDetailItemName = "com.tencent.mm:id/clo";//朋友圈详情 列表项 用户名
-  String IdTextViewTimeLineDetailItemContent = "com.tencent.mm:id/clq";//朋友圈详情 列表项 评论内容
-  String IdEditTimeLineComment = "com.tencent.mm:id/cls";//朋友圈评论 输入框
+  String IdListViewTimeLineCommentDetail = "com.tencent.mm:id/co_";//朋友圈详情页 ListView
+  String IdLayoutTimeLineDetailListItem = "com.tencent.mm:id/cp0";//朋友圈评论详情页 ListView的itemLayout
+  String IdTextViewTimeLineDetailItemName = "com.tencent.mm:id/cp4";//朋友圈详情 列表项 用户名
+  String IdTextViewTimeLineDetailItemContent = "com.tencent.mm:id/cp6";//朋友圈详情 列表项 评论内容
+  String IdEditTimeLineComment = "com.tencent.mm:id/cp8";//朋友圈评论 输入框
 
   String IdTextChatItemContent ="com.tencent.mm:id/if";//聊天页 文字内容栏
   String IdListViewChatItemContent ="com.tencent.mm:id/a2i";//聊天页 ListView列表
@@ -20,7 +20,7 @@ public interface ConstantTargetName {
   String IdEditTimeLineUpload = "com.tencent.mm:id/cpe";//朋友圈发布页 输入框
   String IdEditChat = "com.tencent.mm:id/a3b";//聊天页输入列表 输入框
   String IdButtonVoiceChat = "com.tencent.mm:id/a3_";//聊天页输入列表 语音切换按钮
-  String IdTextTimeLineAuthor = "com.tencent.mm:id/afv";//朋友圈详情页 作者名称
+  String IdTextTimeLineAuthor = "com.tencent.mm:id/agw";//朋友圈详情页 作者名称
   String IdTextTimeLineContent = "com.tencent.mm:id/lr";//朋友圈详情页 文字内容
   String IdTextTimeLineDate = "com.tencent.mm:id/clb";//朋友圈详情页 日期时间内容
   String IdTextViewBottomMain = "com.tencent.mm:id/brg";//微信主页 底部4个主TextView的id

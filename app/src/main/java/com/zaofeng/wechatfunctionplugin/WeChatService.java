@@ -1,5 +1,26 @@
 package com.zaofeng.wechatfunctionplugin;
 
+import android.accessibilityservice.AccessibilityService;
+import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
+import android.view.KeyEvent;
+import android.view.accessibility.AccessibilityEvent;
+import android.widget.Toast;
+import com.zaofeng.wechatfunctionplugin.action.BaseAction;
+import com.zaofeng.wechatfunctionplugin.action.EventAutoReplyAction;
+import com.zaofeng.wechatfunctionplugin.action.MotionAutoCopyCommentAction;
+import com.zaofeng.wechatfunctionplugin.action.MotionCutPasteCommentAction;
+import com.zaofeng.wechatfunctionplugin.action.MotionFastBackChatAction;
+import com.zaofeng.wechatfunctionplugin.action.MotionFastCopyCommentAction;
+import com.zaofeng.wechatfunctionplugin.action.MotionFastReleaseLineAction;
+import com.zaofeng.wechatfunctionplugin.model.Constant;
+import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
+import com.zaofeng.wechatfunctionplugin.utils.Logger;
+import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
+
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassAlbumPreviewUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassContactInfoUI;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.ClassFMessageConversationUI;
@@ -21,34 +42,11 @@ import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.SnsUploadU
 import static com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.Unknown;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.hasViewById;
 
-import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.annotation.NonNull;
-import android.view.KeyEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.accessibility.AccessibilityEvent;
-import com.zaofeng.wechatfunctionplugin.action.BaseAction;
-import com.zaofeng.wechatfunctionplugin.action.EventAutoReplyAction;
-import com.zaofeng.wechatfunctionplugin.action.MotionAutoCopyCommentAction;
-import com.zaofeng.wechatfunctionplugin.action.MotionFastBackChatAction;
-import com.zaofeng.wechatfunctionplugin.action.MotionFastCopyCommentAction;
-import com.zaofeng.wechatfunctionplugin.action.MotionFastReleaseLineAction;
-import com.zaofeng.wechatfunctionplugin.model.Constant;
-import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.utils.Logger;
-import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
-
-
 /**
  * Created by 李可乐 on 2017/2/5 0005.
  */
 
 public class WeChatService extends AccessibilityService {
-
 
   /**
    * 基本组件
@@ -56,8 +54,6 @@ public class WeChatService extends AccessibilityService {
   private Context mContext;
   private AccessibilityService mService;
   private WindowView mWindowView;
-
-  private boolean isDebug = BuildConfig.DEBUG;
 
   @StatusUI
   private int statusUi;
@@ -67,7 +63,7 @@ public class WeChatService extends AccessibilityService {
 
   private MotionAutoCopyCommentAction motionAutoCopyCommentAction;//自动复制评论
   private MotionFastCopyCommentAction motionFastCopyCommentAction;//快速评论复制回复
-
+  private MotionCutPasteCommentAction motionCutPasteCommentAction;//快速剪贴复制评论
   private EventAutoReplyAction eventAutoReplyAction;//自动回复
 
   /**
@@ -100,24 +96,35 @@ public class WeChatService extends AccessibilityService {
     eventAutoReplyAction = new EventAutoReplyAction(mContext, mWindowView, mService,
         (boolean) SPUtils.get(mContext, Constant.Release_Back, false));
 
-    motionAutoCopyCommentAction = new MotionAutoCopyCommentAction(
-        mContext, mWindowView, mService,
-        (boolean) SPUtils.get(mContext, Constant.Comment_Auto, false));
-
     motionFastCopyCommentAction = new MotionFastCopyCommentAction(
         mContext, mWindowView, mService,
         (boolean) SPUtils.get(mContext, Constant.Comment_Copy, false)
     );
 
+    boolean isOpenCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Auto, false);
+
+    motionAutoCopyCommentAction = new MotionAutoCopyCommentAction(
+        mContext, mWindowView, mService, isOpenCopy
+    );
+
+    motionCutPasteCommentAction = new MotionCutPasteCommentAction(
+        mContext, mWindowView, mService, isOpenCopy
+    );
   }
 
   private void initWindowView() {
     mWindowView = new WindowView(mContext);
-    mWindowView.setOnViewMainClick(new OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        motionAutoCopyCommentAction.action(BaseAction.Step0, statusUi, null);
-      }
+    mWindowView.setOnViewMainActionListener(
+        view -> {
+          motionAutoCopyCommentAction.action(BaseAction.Step0, statusUi, null);
+        });
+
+    mWindowView.setOnViewMainActionLongListener(view -> {
+      motionCutPasteCommentAction.action(BaseAction.Step0, statusUi, null);
+    });
+
+    mWindowView.setTxtPasteClickListener(view -> {
+      motionCutPasteCommentAction.action(BaseAction.Step1, statusUi, null);
     });
 
     mWindowView
@@ -150,33 +157,33 @@ public class WeChatService extends AccessibilityService {
   /**
    * SP数据监听器实例
    */
-  private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-      Logger.d("key=" + key);
-      if (key.equals(Constant.Release_Copy)) {
-        motionFastReleaseLineAction
-            .setOpen(sharedPreferences.getBoolean(Constant.Release_Copy, false));
-      } else if (key.equals(Constant.Release_Back)) {
-        motionFastBackChatAction
-            .setOpen(sharedPreferences.getBoolean(Constant.Release_Back, false));
-      } else if (key.equals(Constant.Quick_Offline)) {
-        eventAutoReplyAction
-            .setOpen(sharedPreferences.getBoolean(Constant.Quick_Offline, false));
-      } else if (key.equals(Constant.Comment_Copy)) {
-        motionFastCopyCommentAction
-            .setOpen(sharedPreferences.getBoolean(Constant.Comment_Copy, false));
-      } else if (key.equals(Constant.Comment_Auto)) {
-        motionAutoCopyCommentAction
-            .setOpen(sharedPreferences.getBoolean(Constant.Comment_Auto, false));
-      }
+  private SharedPreferences.OnSharedPreferenceChangeListener onSharedPreferenceChangeListener =
+      new SharedPreferences.OnSharedPreferenceChangeListener() {
+        @Override
+        public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+          Logger.d("key=" + key);
+          if (key.equals(Constant.Release_Copy)) {
+            motionFastReleaseLineAction
+                .setOpen(sharedPreferences.getBoolean(Constant.Release_Copy, false));
+          } else if (key.equals(Constant.Release_Back)) {
+            motionFastBackChatAction
+                .setOpen(sharedPreferences.getBoolean(Constant.Release_Back, false));
+          } else if (key.equals(Constant.Quick_Offline)) {
+            eventAutoReplyAction
+                .setOpen(sharedPreferences.getBoolean(Constant.Quick_Offline, false));
+          } else if (key.equals(Constant.Comment_Copy)) {
+            motionFastCopyCommentAction
+                .setOpen(sharedPreferences.getBoolean(Constant.Comment_Copy, false));
+          } else if (key.equals(Constant.Comment_Auto)) {
+            motionAutoCopyCommentAction
+                .setOpen(sharedPreferences.getBoolean(Constant.Comment_Auto, false));
+          }
 
-      if (mWindowView != null) {
-        mWindowView.setOnChangeViewData(sharedPreferences);
-      }
-    }
-  };
-
+          if (mWindowView != null) {
+            mWindowView.setOnChangeViewData(sharedPreferences);
+          }
+        }
+      };
 
   @Override
   public void onInterrupt() {
@@ -199,12 +206,11 @@ public class WeChatService extends AccessibilityService {
     return super.onKeyEvent(event);
   }
 
-
   @NonNull
   private AccessibilityServiceInfo initServiceInfo() {
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
     info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;//响应的事件类型
-    info.packageNames = new String[]{"com.tencent.mm"};//响应的包名
+    info.packageNames = new String[] {"com.tencent.mm"};//响应的包名
     info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;//反馈类型
     info.flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
     info.notificationTimeout = 80;//响应时间
@@ -215,7 +221,6 @@ public class WeChatService extends AccessibilityService {
 
     SPUtils.getSharedPreference(mContext)
         .registerOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
-
   }
 
   /**
@@ -327,10 +332,8 @@ public class WeChatService extends AccessibilityService {
         }
 
         break;
-
     }
     Logger.d("statusUi=" + statusUi);
-
   }
 
   private boolean hasInputBox() {
@@ -339,6 +342,4 @@ public class WeChatService extends AccessibilityService {
     }
     return false;
   }
-
-
 }

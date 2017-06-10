@@ -4,16 +4,19 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.support.annotation.IntDef;
+import android.view.GestureDetector;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 import com.zaofeng.wechatfunctionplugin.model.Constant;
+import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -31,17 +34,50 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
   private WindowManager mWindowManager;
   private WindowManager.LayoutParams mWLayoutParams;
   private View viewRoot;
-  private TextView btnMain;
+
+  private TextView txtActionMain;
   private CheckBox checkMenu;
   private View layoutMenu;
-  private CheckBox checkRelease;
-  private CheckBox checkBack;
+  private TextView txtPaste;
   private CheckBox checkComment;
-  private int mStartX;
-  private int mStartY;
-  private int mEndX;
-  private int mEndY;
+
   private OnWindowViewCheckChangeListener onWindowViewCheckChangeListener;
+  private ActionListener actionListener;
+  private ActionLongListener actionLongListener;
+
+  final GestureDetector gestureDetector =
+      new GestureDetector(mContext, new GestureDetector.SimpleOnGestureListener() {
+
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+          updateViewLayoutByMotionEvent(e2);
+          return true;
+        }
+
+        @Override public boolean onSingleTapConfirmed(MotionEvent e) {
+          if (actionListener != null) {
+            actionListener.onAction(txtActionMain);
+          }
+          return true;
+        }
+
+        @Override public void onLongPress(MotionEvent e) {
+          if (actionLongListener!=null){
+            actionLongListener.onAction(txtActionMain);
+          }
+        }
+
+        @Override public boolean onDoubleTap(MotionEvent e) {
+          if (actionLongListener!=null){
+            actionLongListener.onAction(txtActionMain);
+          }
+          return true;
+        }
+
+        @Override public boolean onDown(MotionEvent e) {
+          return true;
+        }
+      });
 
   public WindowView(Context context) {
     this.mContext = context;
@@ -49,7 +85,6 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
     initView();
     initWindowLayout();
-    initTouchListener();
     initClickListener();
     initViewDate();
     addView();
@@ -61,14 +96,12 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
   private void initView() {
     viewRoot = LayoutInflater.from(mContext).inflate(R.layout.layout_window, null);
-    btnMain = (TextView) viewRoot.findViewById(R.id.txt_window_main);
+    txtActionMain = (TextView) viewRoot.findViewById(R.id.txt_window_action_main);
     checkMenu = (CheckBox) viewRoot.findViewById(R.id.check_window_menu);
     layoutMenu = viewRoot.findViewById(R.id.layout_window_more);
 
-    checkRelease = (CheckBox) viewRoot.findViewById(R.id.check_window_release_copy);
-    checkBack = (CheckBox) viewRoot.findViewById(R.id.check_window_release_back);
     checkComment = (CheckBox) viewRoot.findViewById(R.id.check_window_comment_copy);
-
+    txtPaste = (TextView) viewRoot.findViewById(R.id.txt_window_comment_paste);
   }
 
   public void addView() {
@@ -80,17 +113,18 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
   }
 
   private void initClickListener() {
-    checkMenu.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-      @Override
-      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-        checkMenu.setText(isChecked ? "收起更多" : "打开更多");
-        layoutMenu.setVisibility(isChecked ? View.VISIBLE : View.GONE);
-      }
+    checkMenu.setOnCheckedChangeListener((buttonView, isChecked) -> {
+      checkMenu.setText(isChecked ? "收起更多" : "打开更多");
+      layoutMenu.setVisibility(isChecked ? View.VISIBLE : View.GONE);
     });
 
-    checkRelease.setOnCheckedChangeListener(this);
-    checkBack.setOnCheckedChangeListener(this);
     checkComment.setOnCheckedChangeListener(this);
+
+    txtActionMain.setOnTouchListener(new OnTouchListener() {
+      @Override public boolean onTouch(View v, MotionEvent event) {
+        return gestureDetector.onTouchEvent(event);
+      }
+    });
   }
 
   @Override
@@ -100,12 +134,6 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
       return;
     }
     switch (id) {
-      case R.id.check_window_release_copy:
-        onWindowViewCheckChangeListener.onChange(IndexRelease, isChecked);
-        break;
-      case R.id.check_window_release_back:
-        onWindowViewCheckChangeListener.onChange(IndexBack, isChecked);
-        break;
       case R.id.check_window_comment_copy:
         onWindowViewCheckChangeListener.onChange(IndexComment, isChecked);
         break;
@@ -124,57 +152,27 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
     mWLayoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT;
   }
 
-  private void initTouchListener() {
-    viewRoot.setOnTouchListener(new View.OnTouchListener() {
-      @Override
-      public boolean onTouch(View v, MotionEvent event) {
-
-        switch (event.getAction()) {
-          case MotionEvent.ACTION_DOWN:
-            mStartX = (int) event.getRawX();
-            mStartY = (int) event.getRawY();
-            break;
-          case MotionEvent.ACTION_MOVE:
-            mEndX = (int) event.getRawX();
-            mEndY = (int) event.getRawY();
-            if (needIntercept()) {
-              mWLayoutParams.x = (int) (event.getRawX() - getViewRoot().getMeasuredWidth() / 2);
-              mWLayoutParams.y = (int) (event.getRawY() - getViewRoot().getMeasuredHeight() / 2);
-              mWindowManager.updateViewLayout(getViewRoot(), mWLayoutParams);
-              return true;
-            }
-            break;
-          case MotionEvent.ACTION_UP:
-            if (needIntercept()) {
-              return true;
-            }
-            break;
-          default:
-            break;
-        }
-
-        return false;
-      }
-
-      private boolean needIntercept() {
-        return Math.abs(mStartX - mEndX) > 30 || Math.abs(mStartY - mEndY) > 30;
-      }
-    });
-  }
-
-  public void setMainTitle(String text) {
-    btnMain.setText(text);
-  }
-
   public View getViewRoot() {
     return viewRoot;
   }
 
-
-  public void setOnViewMainClick(final OnClickListener onWindowViewClickListener) {
-    viewRoot.setOnClickListener(onWindowViewClickListener);
+  public void setOnViewMainActionListener(final ActionListener listener) {
+    this.actionListener = listener;
   }
 
+  public void setOnViewMainActionLongListener(final  ActionLongListener listener){
+    this.actionLongListener=listener;
+  }
+
+  public void setTxtPasteClickListener(final OnClickListener onClickListener) {
+    this.txtPaste.setOnClickListener(onClickListener);
+  }
+
+  private void updateViewLayoutByMotionEvent(MotionEvent e2) {
+    mWLayoutParams.x = (int) (e2.getRawX() - getViewRoot().getMeasuredWidth() / 2);
+    mWLayoutParams.y = (int) (e2.getRawY() - getViewRoot().getMeasuredHeight() / 2);
+    mWindowManager.updateViewLayout(getViewRoot(), mWLayoutParams);
+  }
 
   public void setOnWindowViewCheckChangeListener(
       OnWindowViewCheckChangeListener onWindowViewCheckChangeListener) {
@@ -183,18 +181,12 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
   public void setOnChangeViewData(SharedPreferences sharedPreferences) {
 
-    boolean isRelease = sharedPreferences.getBoolean(Constant.Release_Copy, false);
-    boolean isBack = sharedPreferences.getBoolean(Constant.Release_Back, false);
     boolean isComment = sharedPreferences.getBoolean(Constant.Comment_Copy, false);
 
-    if (checkRelease != null && checkBack != null && checkComment != null) {
-      checkRelease.setChecked(isRelease);
-      checkBack.setChecked(isBack);
+    if (checkComment != null) {
       checkComment.setChecked(isComment);
     }
-
   }
-
 
   @IntDef({IndexRelease, IndexBack, IndexComment})
   @Retention(RetentionPolicy.SOURCE)
@@ -202,11 +194,16 @@ public class WindowView implements CompoundButton.OnCheckedChangeListener {
 
   }
 
+  public interface ActionListener {
+    void onAction(View view);
+  }
+
+  public interface ActionLongListener{
+    void onAction(View view);
+  }
 
   public interface OnWindowViewCheckChangeListener {
 
     void onChange(@Index int index, boolean isChecked);
   }
-
-
 }

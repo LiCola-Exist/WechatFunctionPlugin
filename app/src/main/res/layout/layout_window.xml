@@ -1,61 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    xmlns:tools="http://schemas.android.com/tools"
     android:background="@drawable/bg_window"
     android:gravity="center"
     android:orientation="vertical"
+    tools:layout_margin="16dp"
     android:padding="4dp">
+
+  <TextView
+      android:background="?android:attr/selectableItemBackground"
+      android:id="@+id/txt_window_action_main"
+      android:gravity="center"
+      style="@style/text_window"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:drawableTop="@drawable/ic_content_copy_48dp"
+      android:text="复制剪贴" />
+
+  <CheckBox
+      android:id="@+id/check_window_menu"
+      style="@style/text_arrow_check_window"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:checked="false"
+      android:text="打开更多" />
+
+  <LinearLayout
+      android:id="@+id/layout_window_more"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:orientation="vertical"
+      android:visibility="gone"
+      tools:visibility="visible"
+      android:gravity="center">
 
 
     <TextView
-        android:id="@+id/txt_window_main"
-        style="@style/text_window"
-        android:layout_width="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:id="@+id/txt_window_comment_paste"
+        style="@style/text_check_window"
+        android:drawableLeft="@drawable/ic_content_paste_24dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:drawableTop="@drawable/ic_action_cut"
-        android:text="点击开始" />
+        android:text="粘贴评论" />
 
     <CheckBox
-        android:id="@+id/check_window_menu"
-        style="@style/text_arrow_check_window"
+        android:background="?android:attr/selectableItemBackground"
+        android:id="@+id/check_window_comment_copy"
+        style="@style/text_check_window"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:checked="false"
-        android:text="打开更多" />
+        android:text="快捷评论" />
 
-    <LinearLayout
-        android:id="@+id/layout_window_more"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:visibility="gone"
-        tools:visibility="visible"
-        >
-
-        <CheckBox
-            android:id="@+id/check_window_release_copy"
-            style="@style/text_check_window"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="快速发布" />
-
-        <CheckBox
-            android:id="@+id/check_window_release_back"
-            style="@style/text_check_window"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="快速返回" />
-
-        <CheckBox
-            android:id="@+id/check_window_comment_copy"
-            style="@style/text_check_window"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="快捷评论" />
-
-    </LinearLayout>
+  </LinearLayout>
 
 
 </LinearLayout>

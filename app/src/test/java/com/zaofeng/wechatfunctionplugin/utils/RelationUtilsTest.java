@@ -23,17 +23,14 @@ public class RelationUtilsTest {
     originalSet.add(new CommentDateModel(3, "朵朵", "内容1"));
     originalSet.add(new CommentDateModel(4, "其他人", "回复朵朵:内容4"));
     originalSet.add(new CommentDateModel(5, "朵朵", "回复其他人:内容5"));
-    originalSet.add(new CommentDateModel(6, "其他人", "内容6"));
 
     ArrayList<CommentRelationModel> targetList = new ArrayList<>();
     ArrayList<CommentRelationModel> coverList = new ArrayList<>();
 
-    targetList.add(new CommentRelationModel(1, "文字内容123"));
+    RelationUtils.traverseCommentByName(originalSet,"朵朵",targetList,coverList);
 
-    coverList.add(new CommentRelationModel(0, "文字内容123"));
-    RelationUtils.getCommentDatesByRule(originalSet,"朵朵",targetList,coverList);
-
-    assertEquals(1,targetList);
+    assertEquals(1,coverList.size());
+    assertEquals(3,targetList.size());
   }
 
   @Test
