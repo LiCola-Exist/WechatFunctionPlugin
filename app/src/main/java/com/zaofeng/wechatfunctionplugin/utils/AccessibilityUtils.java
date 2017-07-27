@@ -44,7 +44,6 @@ public class AccessibilityUtils {
     return getListAccessibilityNodeInfos(info, text, false);
   }
 
-
   public static AccessibilityNodeInfo findViewById(AccessibilityService service, String id) {
     AccessibilityNodeInfo info = service.getRootInActiveWindow();
     return getAccessibilityNodeInfo(info, id, true);
@@ -62,7 +61,6 @@ public class AccessibilityUtils {
   public static AccessibilityNodeInfo findViewByText(AccessibilityNodeInfo info, String text) {
     return getAccessibilityNodeInfo(info, text, false);
   }
-
 
   public static AccessibilityNodeInfo findViewClickById(AccessibilityService service, String id) {
     AccessibilityNodeInfo info = service.getRootInActiveWindow();
@@ -83,14 +81,13 @@ public class AccessibilityUtils {
     return getAccessibilityClickNodeInfo(info, text, false);
   }
 
-
   /**
    * 遍历得到可以点击的节点 向上（父节点）遍历
    */
   public static AccessibilityNodeInfo forNodeInfoByClick(AccessibilityNodeInfo info) {
-      if (info == null) {
-          return null;
-      }
+    if (info == null) {
+      return null;
+    }
     AccessibilityNodeInfo parent = info;
     while (parent != null) {
       if (parent.isClickable()) {
@@ -101,28 +98,27 @@ public class AccessibilityUtils {
     return null;
   }
 
-
   private static boolean hasNodeInfosByViewId(AccessibilityNodeInfo info, String id) {
-      if (info == null) {
-          return false;
-      }
+    if (info == null) {
+      return false;
+    }
     List<AccessibilityNodeInfo> nodeInfoList = info.findAccessibilityNodeInfosByViewId(id);
-    info.recycle();
+    //info.recycle();
     return !nodeInfoList.isEmpty();
   }
 
   private static List<AccessibilityNodeInfo> getListAccessibilityNodeInfos(
       AccessibilityNodeInfo info, String key, boolean isId) {
-      if (info == null || TextUtils.isEmpty(key)) {
-          return Collections.emptyList();
-      }
+    if (info == null || TextUtils.isEmpty(key)) {
+      return Collections.emptyList();
+    }
     List<AccessibilityNodeInfo> infos;
     if (isId) {
       infos = info.findAccessibilityNodeInfosByViewId(key);
     } else {
       infos = info.findAccessibilityNodeInfosByText(key);
     }
-//        info.recycle();
+    //info.recycle();
     return infos;
   }
 
@@ -133,16 +129,16 @@ public class AccessibilityUtils {
    */
   private static AccessibilityNodeInfo getAccessibilityNodeInfo(AccessibilityNodeInfo info,
       String key, boolean isId) {
-      if (info == null || TextUtils.isEmpty(key)) {
-          return null;
-      }
+    if (info == null || TextUtils.isEmpty(key)) {
+      return null;
+    }
     List<AccessibilityNodeInfo> infos;
     if (isId) {
       infos = info.findAccessibilityNodeInfosByViewId(key);
     } else {
       infos = info.findAccessibilityNodeInfosByText(key);
     }
-//        info.recycle();
+    //info.recycle();
     return checkNodeListRule(infos) ? infos.get(0) : null;
   }
 
@@ -162,7 +158,21 @@ public class AccessibilityUtils {
    * @return true 符合判定条件 即非空并且只有一个元素 能够准确定位 false 其他情况都是
    */
   private static boolean checkNodeListRule(List<AccessibilityNodeInfo> infos) {
-//        return (!infos.isEmpty()) && (infos.size() == 1);
+    //        return (!infos.isEmpty()) && (infos.size() == 1);
     return !infos.isEmpty();
+  }
+
+  public static String getNodeInfoText(AccessibilityNodeInfo info) {
+    if (info == null) {
+      return null;
+    }
+    CharSequence text = info.getText();
+    if (CheckUtils.isEmpty(text)) {
+      return null;
+    }
+
+    String result = new String(text.toString().trim()).intern();
+
+    return result;
   }
 }

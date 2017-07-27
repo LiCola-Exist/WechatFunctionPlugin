@@ -1,7 +1,5 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
-
 import android.accessibilityservice.AccessibilityService;
 import android.content.Context;
 import android.os.Handler;
@@ -13,7 +11,8 @@ import com.zaofeng.wechatfunctionplugin.WindowView;
 import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.util.Arrays;
+
+import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 
 /**
  * Created by 李可乐 on 2017/5/13.

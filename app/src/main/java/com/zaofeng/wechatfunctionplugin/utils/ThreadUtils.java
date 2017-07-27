@@ -7,11 +7,11 @@ import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
  */
 
 public class ThreadUtils {
-    public static void sleepSecure(){
-        sleepSecure(delayTime);
-    }
+  public static void sleepSecure() {
+    sleepSecure(delayTime);
+  }
 
-  public static void sleepSecure(long delayTime){
+  public static void sleepSecure(long delayTime) {
     try {
       Thread.sleep(delayTime);
     } catch (InterruptedException e) {

@@ -6,9 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
-import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
-import android.widget.Toast;
 import com.zaofeng.wechatfunctionplugin.action.BaseAction;
 import com.zaofeng.wechatfunctionplugin.action.EventAutoReplyAction;
 import com.zaofeng.wechatfunctionplugin.action.MotionAutoCopyCommentAction;
@@ -55,8 +53,7 @@ public class WeChatService extends AccessibilityService {
   private AccessibilityService mService;
   private WindowView mWindowView;
 
-  @StatusUI
-  private int statusUi;
+  @StatusUI private int statusUi;
 
   private MotionFastReleaseLineAction motionFastReleaseLineAction;//复制快速发布操作
   private MotionFastBackChatAction motionFastBackChatAction;//发布快速返回
@@ -70,8 +67,7 @@ public class WeChatService extends AccessibilityService {
    * 系统会在成功连接上服务时候调用这个方法
    * 初始化参数和工具类
    */
-  @Override
-  protected void onServiceConnected() {
+  @Override protected void onServiceConnected() {
     mContext = getApplicationContext();
     mService = this;
     this.setServiceInfo(initServiceInfo());
@@ -83,41 +79,32 @@ public class WeChatService extends AccessibilityService {
   }
 
   private void initAction() {
-    motionFastReleaseLineAction = new MotionFastReleaseLineAction(
-        mContext, mWindowView, mService,
-        (boolean) SPUtils.get(mContext, Constant.Release_Copy, false)
-    );
+    motionFastReleaseLineAction = new MotionFastReleaseLineAction(mContext, mWindowView, mService,
+        (boolean) SPUtils.get(mContext, Constant.Release_Copy, false));
 
-    motionFastBackChatAction = new MotionFastBackChatAction(
-        mContext, mWindowView, mService,
-        (boolean) SPUtils.get(mContext, Constant.Release_Back, false)
-    );
+    motionFastBackChatAction = new MotionFastBackChatAction(mContext, mWindowView, mService,
+        (boolean) SPUtils.get(mContext, Constant.Release_Back, false));
 
     eventAutoReplyAction = new EventAutoReplyAction(mContext, mWindowView, mService,
         (boolean) SPUtils.get(mContext, Constant.Release_Back, false));
 
-    motionFastCopyCommentAction = new MotionFastCopyCommentAction(
-        mContext, mWindowView, mService,
-        (boolean) SPUtils.get(mContext, Constant.Comment_Copy, false)
-    );
+    motionFastCopyCommentAction = new MotionFastCopyCommentAction(mContext, mWindowView, mService,
+        (boolean) SPUtils.get(mContext, Constant.Comment_Copy, false));
 
     boolean isOpenCopy = (boolean) SPUtils.get(mContext, Constant.Comment_Auto, false);
 
-    motionAutoCopyCommentAction = new MotionAutoCopyCommentAction(
-        mContext, mWindowView, mService, isOpenCopy
-    );
+    motionAutoCopyCommentAction =
+        new MotionAutoCopyCommentAction(mContext, mWindowView, mService, isOpenCopy);
 
-    motionCutPasteCommentAction = new MotionCutPasteCommentAction(
-        mContext, mWindowView, mService, isOpenCopy
-    );
+    motionCutPasteCommentAction =
+        new MotionCutPasteCommentAction(mContext, mWindowView, mService, isOpenCopy);
   }
 
   private void initWindowView() {
     mWindowView = new WindowView(mContext);
-    mWindowView.setOnViewMainActionListener(
-        view -> {
-          motionAutoCopyCommentAction.action(BaseAction.Step0, statusUi, null);
-        });
+    mWindowView.setOnViewMainActionListener(view -> {
+      motionAutoCopyCommentAction.action(BaseAction.Step0, statusUi, null);
+    });
 
     mWindowView.setOnViewMainActionLongListener(view -> {
       motionCutPasteCommentAction.action(BaseAction.Step0, statusUi, null);
@@ -127,11 +114,10 @@ public class WeChatService extends AccessibilityService {
       motionCutPasteCommentAction.action(BaseAction.Step1, statusUi, null);
     });
 
-    mWindowView
-        .setOnWindowViewCheckChangeListener(new WindowView.OnWindowViewCheckChangeListener() {
+    mWindowView.setOnWindowViewCheckChangeListener(
+        new WindowView.OnWindowViewCheckChangeListener() {
 
-          @Override
-          public void onChange(@WindowView.Index int index, boolean isChecked) {
+          @Override public void onChange(@WindowView.Index int index, boolean isChecked) {
             String key = null;
             switch (index) {
               case WindowView.IndexRelease:
@@ -163,20 +149,20 @@ public class WeChatService extends AccessibilityService {
         public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
           Logger.d("key=" + key);
           if (key.equals(Constant.Release_Copy)) {
-            motionFastReleaseLineAction
-                .setOpen(sharedPreferences.getBoolean(Constant.Release_Copy, false));
+            motionFastReleaseLineAction.setOpen(
+                sharedPreferences.getBoolean(Constant.Release_Copy, false));
           } else if (key.equals(Constant.Release_Back)) {
-            motionFastBackChatAction
-                .setOpen(sharedPreferences.getBoolean(Constant.Release_Back, false));
+            motionFastBackChatAction.setOpen(
+                sharedPreferences.getBoolean(Constant.Release_Back, false));
           } else if (key.equals(Constant.Quick_Offline)) {
-            eventAutoReplyAction
-                .setOpen(sharedPreferences.getBoolean(Constant.Quick_Offline, false));
+            eventAutoReplyAction.setOpen(
+                sharedPreferences.getBoolean(Constant.Quick_Offline, false));
           } else if (key.equals(Constant.Comment_Copy)) {
-            motionFastCopyCommentAction
-                .setOpen(sharedPreferences.getBoolean(Constant.Comment_Copy, false));
+            motionFastCopyCommentAction.setOpen(
+                sharedPreferences.getBoolean(Constant.Comment_Copy, false));
           } else if (key.equals(Constant.Comment_Auto)) {
-            motionAutoCopyCommentAction
-                .setOpen(sharedPreferences.getBoolean(Constant.Comment_Auto, false));
+            motionAutoCopyCommentAction.setOpen(
+                sharedPreferences.getBoolean(Constant.Comment_Auto, false));
           }
 
           if (mWindowView != null) {
@@ -185,36 +171,37 @@ public class WeChatService extends AccessibilityService {
         }
       };
 
-  @Override
-  public void onInterrupt() {
+  @Override public void onInterrupt() {
     SPUtils.getSharedPreference(mContext)
         .unregisterOnSharedPreferenceChangeListener(onSharedPreferenceChangeListener);
     Logger.d("服务中断，如授权关闭或者将服务杀死");
     mWindowView.removeView();
   }
 
-  @Override
-  public boolean onUnbind(Intent intent) {
+  @Override public boolean onUnbind(Intent intent) {
     Logger.d("服务被解绑");
     mWindowView.removeView();
     return super.onUnbind(intent);
   }
 
-  @Override
-  protected boolean onKeyEvent(KeyEvent event) {
-    Logger.d(event.toString());
-    return super.onKeyEvent(event);
-  }
-
-  @NonNull
-  private AccessibilityServiceInfo initServiceInfo() {
+  @NonNull private AccessibilityServiceInfo initServiceInfo() {
     AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-    info.eventTypes = AccessibilityEvent.TYPES_ALL_MASK;//响应的事件类型
-    info.packageNames = new String[] {"com.tencent.mm"};//响应的包名
+    info.eventTypes = getEventTypes();//响应的事件类型
+    info.packageNames = new String[] { "com.tencent.mm" };//响应的包名
     info.feedbackType = AccessibilityServiceInfo.FEEDBACK_ALL_MASK;//反馈类型
     info.flags = AccessibilityServiceInfo.FLAG_RETRIEVE_INTERACTIVE_WINDOWS;
-    info.notificationTimeout = 80;//响应时间
+    info.notificationTimeout = 150;//响应时间
     return info;
+  }
+
+  private int getEventTypes() {
+    return AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+        | AccessibilityEvent.TYPE_VIEW_FOCUSED
+        //| AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED
+        | AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
+        | AccessibilityEvent.TYPE_VIEW_CLICKED
+        | AccessibilityEvent.TYPE_VIEW_LONG_CLICKED
+        | AccessibilityEvent.TYPE_VIEW_TEXT_SELECTION_CHANGED;
   }
 
   private void initOperationVariable() {
@@ -226,8 +213,7 @@ public class WeChatService extends AccessibilityService {
   /**
    * 接收Accessibility事件方法
    */
-  @Override
-  public void onAccessibilityEvent(AccessibilityEvent event) {
+  @Override public void onAccessibilityEvent(AccessibilityEvent event) {
     Logger.d("event date = " + event.toString());
     int type = event.getEventType();
     String className = event.getClassName().toString();

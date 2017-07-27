@@ -1,7 +1,16 @@
 package com.zaofeng.wechatfunctionplugin.action;
 
+import android.accessibilityservice.AccessibilityService;
+import android.content.Context;
+import android.graphics.Rect;
+import android.view.accessibility.AccessibilityEvent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import com.zaofeng.wechatfunctionplugin.WindowView;
+import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
+import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
+import java.util.List;
+
 import static android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK;
-import static com.zaofeng.wechatfunctionplugin.model.ConstantData.delayTime;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdButtonComment;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdButtonMenuComment;
 import static com.zaofeng.wechatfunctionplugin.model.ConstantTargetName.IdEditTimeLineComment;
@@ -12,16 +21,6 @@ import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findView
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewClickByText;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.findViewListById;
 import static com.zaofeng.wechatfunctionplugin.utils.AccessibilityUtils.forNodeInfoByClick;
-
-import android.accessibilityservice.AccessibilityService;
-import android.content.Context;
-import android.graphics.Rect;
-import android.view.accessibility.AccessibilityEvent;
-import android.view.accessibility.AccessibilityNodeInfo;
-import com.zaofeng.wechatfunctionplugin.WindowView;
-import com.zaofeng.wechatfunctionplugin.model.WeChatUIContract.StatusUI;
-import com.zaofeng.wechatfunctionplugin.utils.PerformUtils;
-import java.util.List;
 
 /**
  * Created by 李可乐 on 2017/5/13.

@@ -17,7 +17,6 @@ import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import com.zaofeng.wechatfunctionplugin.model.Constant;
-import com.zaofeng.wechatfunctionplugin.utils.Logger;
 import com.zaofeng.wechatfunctionplugin.utils.SPUtils;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
