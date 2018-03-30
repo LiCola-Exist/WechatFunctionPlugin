@@ -215,6 +215,8 @@ public class WeChatService extends AccessibilityService {
    */
   @Override public void onAccessibilityEvent(AccessibilityEvent event) {
     Logger.d("event date = " + event.toString());
+
+
     int type = event.getEventType();
     String className = event.getClassName().toString();
     String text = event.getText().isEmpty() ? Constant.Empty : event.getText().get(0).toString();
